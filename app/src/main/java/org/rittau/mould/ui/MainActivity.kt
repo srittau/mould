@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.NoteAlt
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
@@ -33,7 +34,7 @@ import org.rittau.mould.model.Character
 import org.rittau.mould.ui.theme.MouldTheme
 
 enum class MouldScreen {
-    Character, Notes, NoteEditor,
+    Character, Dice, Notes, NoteEditor,
 }
 
 class MainActivity : ComponentActivity() {
@@ -79,6 +80,9 @@ fun Content(character: Character) {
                 composable(MouldScreen.Character.name) {
                     CharacterSheet(character)
                 }
+                composable(MouldScreen.Dice.name) {
+                    DiceView()
+                }
                 composable(MouldScreen.Notes.name) {
                     NotesView {
                         currentNote.value = it
@@ -106,6 +110,10 @@ fun NavBar(activeView: MouldScreen, onChange: (MouldScreen) -> Unit) {
             label = { Text("Character") },
             selected = activeView == MouldScreen.Character,
             onClick = { onChange(MouldScreen.Character) })
+        NavigationBarItem(icon = { Icon(Icons.Filled.Casino, contentDescription = "Dice") },
+            label = { Text("Dice") },
+            selected = activeView == MouldScreen.Dice,
+            onClick = { onChange(MouldScreen.Dice) })
         NavigationBarItem(icon = { Icon(Icons.Filled.NoteAlt, contentDescription = "Notes") },
             label = { Text("Notes") },
             selected = activeView in arrayOf(MouldScreen.Notes, MouldScreen.NoteEditor),
@@ -116,7 +124,7 @@ fun NavBar(activeView: MouldScreen, onChange: (MouldScreen) -> Unit) {
 @Preview(name = "Light Mode", showBackground = true)
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun NavigationPreview() {
+fun NavBarPreview() {
     MouldTheme {
         NavBar(MouldScreen.Character) {}
     }
