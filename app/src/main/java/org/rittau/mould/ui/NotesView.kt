@@ -1,4 +1,4 @@
-package org.rittau.mould
+package org.rittau.mould.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
@@ -24,6 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
+import org.rittau.mould.createNote
+import org.rittau.mould.loadNotes
+import org.rittau.mould.model.CampaignNote
 import org.rittau.mould.ui.theme.MouldTheme
 
 @Composable

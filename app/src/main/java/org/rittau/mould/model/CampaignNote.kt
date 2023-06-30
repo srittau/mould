@@ -1,4 +1,4 @@
-package org.rittau.mould
+package org.rittau.mould.model
 
 import java.util.UUID
 

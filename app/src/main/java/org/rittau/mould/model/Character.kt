@@ -1,3 +1,3 @@
-package org.rittau.mould
+package org.rittau.mould.model
 
 data class Character(var name: String)

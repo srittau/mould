@@ -1,4 +1,4 @@
-package org.rittau.mould
+package org.rittau.mould.ui
 
 import android.content.res.Configuration
 import android.os.Bundle
@@ -26,6 +26,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.runBlocking
+import org.rittau.mould.initializeDatabase
+import org.rittau.mould.loadCharacter
+import org.rittau.mould.model.CampaignNote
+import org.rittau.mould.model.Character
 import org.rittau.mould.ui.theme.MouldTheme
 
 enum class MouldScreen {

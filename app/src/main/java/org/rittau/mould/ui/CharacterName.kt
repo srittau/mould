@@ -1,4 +1,4 @@
-package org.rittau.mould
+package org.rittau.mould.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
+import org.rittau.mould.model.Character
+import org.rittau.mould.saveCharacter
 import org.rittau.mould.ui.theme.MouldTheme
 
 @Composable

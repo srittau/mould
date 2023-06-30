@@ -1,4 +1,4 @@
-package org.rittau.mould
+package org.rittau.mould.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +25,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
+import org.rittau.mould.deleteNote
+import org.rittau.mould.model.CampaignNote
+import org.rittau.mould.updateNote
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
