@@ -11,13 +11,14 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.Update
 import androidx.room.Upsert
 import java.util.UUID
 
-private val DEFAULT_UUID = UUID.fromString("6506c0fa-d589-4b51-b454-13d1ec7002b4")
+private val CAMPAIGN_UUID = UUID.fromString("6506c0fa-d589-4b51-b454-13d1ec7002b4")
 
 @Entity(tableName = "scenarios")
-private data class Scenario(
+private data class DbScenario(
     @PrimaryKey val id: String,
     @ColumnInfo val name: String,
 )
@@ -28,11 +29,11 @@ private interface ScenarioDao {
     suspend fun hasScenario(id: String): Boolean
 
     @Insert
-    suspend fun insertScenario(scenario: Scenario)
+    suspend fun insertScenario(scenario: DbScenario)
 }
 
 @Entity(tableName = "worlds")
-private data class World(
+private data class DbWorld(
     @PrimaryKey val id: String,
     @ColumnInfo val name: String,
 )
@@ -43,21 +44,21 @@ private interface WorldDao {
     suspend fun hasWorld(id: String): Boolean
 
     @Insert
-    suspend fun insertWorld(world: World)
+    suspend fun insertWorld(world: DbWorld)
 }
 
 @Entity(
     tableName = "campaigns",
     foreignKeys = [
         ForeignKey(
-            entity = Scenario::class,
+            entity = DbScenario::class,
             parentColumns = ["id"],
             childColumns = ["scenario_id"],
             onUpdate = ForeignKey.CASCADE,
             onDelete = ForeignKey.RESTRICT,
         ),
         ForeignKey(
-            entity = World::class,
+            entity = DbWorld::class,
             parentColumns = ["id"],
             childColumns = ["world_id"],
             onUpdate = ForeignKey.CASCADE,
@@ -69,7 +70,7 @@ private interface WorldDao {
         Index("world_id"),
     ]
 )
-private data class Campaign(
+private data class DbCampaign(
     @PrimaryKey val uuid: UUID,
     @ColumnInfo(name = "scenario_id") val scenarioID: String,
     @ColumnInfo(name = "world_id") val worldID: String,
@@ -79,19 +80,56 @@ private data class Campaign(
 @Dao
 private interface CampaignDao {
     @Upsert
-    suspend fun upsertCampaign(campaign: Campaign)
+    suspend fun upsertCampaign(campaign: DbCampaign)
+}
+
+@Entity(
+    tableName = "campaign_notes",
+    foreignKeys = [
+        ForeignKey(
+            entity = DbCampaign::class,
+            parentColumns = ["uuid"],
+            childColumns = ["campaign_uuid"],
+            onUpdate = ForeignKey.CASCADE,
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [
+        Index("campaign_uuid"),
+    ]
+)
+private data class DbCampaignNote(
+    @PrimaryKey val uuid: UUID,
+    @ColumnInfo(name = "campaign_uuid") val campaignUUID: UUID,
+    @ColumnInfo val title: String,
+    @ColumnInfo val text: String,
+)
+
+@Dao
+private interface CampaignNoteDao {
+    @Query("SELECT * FROM campaign_notes WHERE campaign_uuid = :campaignUUID")
+    suspend fun selectNotesByCampaign(campaignUUID: UUID): List<DbCampaignNote>
+
+    @Insert
+    suspend fun insertNote(note: DbCampaignNote)
+
+    @Update
+    suspend fun updateNote(note: DbCampaignNote)
+
+    @Query("DELETE FROM campaign_notes WHERE uuid = :uuid")
+    suspend fun deleteNote(uuid: UUID)
 }
 
 @Entity(
     tableName = "characters", foreignKeys = [ForeignKey(
-        entity = Campaign::class,
+        entity = DbCampaign::class,
         parentColumns = ["uuid"],
         childColumns = ["campaign_uuid"],
         onUpdate = ForeignKey.CASCADE,
         onDelete = ForeignKey.CASCADE,
     )]
 )
-private data class CampaignCharacter(
+private data class DbCharacter(
     @PrimaryKey @ColumnInfo(name = "campaign_uuid") val campaignUUID: UUID,
     @ColumnInfo val name: String,
 )
@@ -99,20 +137,21 @@ private data class CampaignCharacter(
 @Dao
 private interface CharacterDao {
     @Query("SELECT * FROM characters WHERE campaign_uuid = :campaignUUID")
-    suspend fun selectCharacter(campaignUUID: UUID): List<CampaignCharacter>
+    suspend fun selectCharacter(campaignUUID: UUID): List<DbCharacter>
 
     @Upsert
-    suspend fun upsertCharacter(character: CampaignCharacter)
+    suspend fun upsertCharacter(character: DbCharacter)
 }
 
 @Database(
-    entities = [Scenario::class, World::class, Campaign::class, CampaignCharacter::class],
+    entities = [DbScenario::class, DbWorld::class, DbCampaign::class, DbCampaignNote::class, DbCharacter::class],
     version = 1
 )
 private abstract class MouldDatabase : RoomDatabase() {
     abstract fun scenarioDao(): ScenarioDao
     abstract fun worldDao(): WorldDao
     abstract fun campaignDao(): CampaignDao
+    abstract fun campaignNoteDao(): CampaignNoteDao
     abstract fun characterDao(): CharacterDao
 }
 
@@ -123,32 +162,52 @@ private fun getDb(): MouldDatabase {
 }
 
 suspend fun initializeDatabase(applicationContext: android.content.Context) {
-    check(db == null) { "Database already initialized" }
     db = Room.databaseBuilder(applicationContext, MouldDatabase::class.java, "mould").build()
     with(getDb()) {
         if (!scenarioDao().hasScenario("default")) {
-            scenarioDao().insertScenario(Scenario("default", "Default Scenario"))
+            scenarioDao().insertScenario(DbScenario("default", "Default Scenario"))
         }
         if (!worldDao().hasWorld("default")) {
-            worldDao().insertWorld(World("default", "Default World"))
+            worldDao().insertWorld(DbWorld("default", "Default World"))
         }
         campaignDao().upsertCampaign(
-            Campaign(
-                DEFAULT_UUID, "default", "default", "Default Campaign"
+            DbCampaign(
+                CAMPAIGN_UUID, "default", "default", "Default Campaign"
             )
         )
     }
 }
 
 suspend fun saveCharacter(character: Character) {
-    getDb().characterDao().upsertCharacter(CampaignCharacter(DEFAULT_UUID, character.name))
+    getDb().characterDao().upsertCharacter(DbCharacter(CAMPAIGN_UUID, character.name))
 }
 
 suspend fun loadCharacter(): Character {
-    val characters = getDb().characterDao().selectCharacter(DEFAULT_UUID)
+    val characters = getDb().characterDao().selectCharacter(CAMPAIGN_UUID)
     if (characters.isEmpty()) {
         return Character("")
     }
     val character = characters[0]
     return Character(character.name)
+}
+
+suspend fun loadNotes(): List<CampaignNote> {
+    val notes = getDb().campaignNoteDao().selectNotesByCampaign(CAMPAIGN_UUID)
+    return notes.map { CampaignNote(it.uuid, it.title, it.text) }
+}
+
+suspend fun createNote(title: String, text: String): CampaignNote {
+    val note = DbCampaignNote(UUID.randomUUID(), CAMPAIGN_UUID, title, text)
+    getDb().campaignNoteDao().insertNote(note)
+    return CampaignNote(note.uuid, note.title, note.text)
+}
+
+suspend fun updateNote(note: CampaignNote) {
+    getDb().campaignNoteDao().updateNote(
+        DbCampaignNote(note.uuid, CAMPAIGN_UUID, note.title, note.text)
+    )
+}
+
+suspend fun deleteNote(note: CampaignNote) {
+    getDb().campaignNoteDao().deleteNote(note.uuid)
 }
