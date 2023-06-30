@@ -13,9 +13,9 @@ import org.rittau.mould.ui.theme.MouldTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initializeDatabase(applicationContext)
-        var character: Character;
+        var character: Character
         runBlocking {
+            initializeDatabase(applicationContext)
             character = loadCharacter()
         }
         setContent {
