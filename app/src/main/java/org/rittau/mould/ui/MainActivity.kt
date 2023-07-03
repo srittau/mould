@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -58,7 +59,7 @@ fun Content(character: Character) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen =
         MouldScreen.valueOf(backStackEntry?.destination?.route ?: MouldScreen.Character.name)
-    val currentNote = rememberSaveable {
+    var currentNote by rememberSaveable {
         mutableStateOf<CampaignNote?>(null)
     }
 
@@ -85,16 +86,16 @@ fun Content(character: Character) {
                 }
                 composable(MouldScreen.Notes.name) {
                     NotesView {
-                        currentNote.value = it
+                        currentNote = it
                         navController.navigate(MouldScreen.NoteEditor.name)
                     }
                 }
                 composable(MouldScreen.NoteEditor.name) {
-                    val note = currentNote.value
+                    val note = currentNote
                     if (note != null) {
                         NoteEditorView(note) {
                             navController.popBackStack()
-                            currentNote.value = null
+                            currentNote = null
                         }
                     }
                 }
