@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -42,30 +43,26 @@ fun NoteEditorView(note: CampaignNote, onClose: () -> Unit) {
     var changed by rememberSaveable { mutableStateOf(false) }
 
     Column {
-        TopAppBar(
-            title = {
-                Text(
-                    if (title != "") title else "Untitled note",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = onClose) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Save")
-                }
-            },
-            actions = {
-                IconButton(onClick = {
-                    runBlocking {
-                        deleteNote(note)
-                    }
-                    onClose()
-                }) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Delete")
-                }
+        TopAppBar(title = {
+            Text(
+                if (title != "") title else "Untitled note",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }, navigationIcon = {
+            IconButton(onClick = onClose) {
+                Icon(Icons.Filled.ArrowBack, contentDescription = "Save")
             }
-        )
+        }, actions = {
+            IconButton(onClick = {
+                runBlocking {
+                    deleteNote(note)
+                }
+                onClose()
+            }) {
+                Icon(Icons.Filled.Delete, contentDescription = "Delete")
+            }
+        })
 
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -83,7 +80,7 @@ fun NoteEditorView(note: CampaignNote, onClose: () -> Unit) {
                 text,
                 minLines = 5,
                 onValueChange = { text = it; changed = true },
-                modifier = Modifier.weight(1f).fillMaxWidth(),
+                modifier = Modifier.height(300.dp).fillMaxWidth(),
             )
             Button(enabled = changed, onClick = {
                 note.title = title
