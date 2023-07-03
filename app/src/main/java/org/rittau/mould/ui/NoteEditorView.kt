@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -41,6 +42,35 @@ fun NoteEditorView(note: CampaignNote, onClose: () -> Unit) {
         mutableStateOf(note.text)
     }
     var changed by rememberSaveable { mutableStateOf(false) }
+    var deleteDialog by rememberSaveable { mutableStateOf(false) }
+
+    fun onDelete() {
+        runBlocking {
+            deleteNote(note)
+        }
+        onClose()
+    }
+
+    if (deleteDialog) {
+        AlertDialog(
+            onDismissRequest = { deleteDialog = false },
+            confirmButton = {
+                Button(onClick = {
+                    deleteDialog = false
+                    onDelete()
+                }) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { deleteDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+            title = { Text(text = "Delete note?") },
+            text = { Text("Are you sure you want to delete this note?") },
+        )
+    }
 
     Column {
         TopAppBar(title = {
@@ -54,12 +84,7 @@ fun NoteEditorView(note: CampaignNote, onClose: () -> Unit) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Save")
             }
         }, actions = {
-            IconButton(onClick = {
-                runBlocking {
-                    deleteNote(note)
-                }
-                onClose()
-            }) {
+            IconButton(onClick = { deleteDialog = true }) {
                 Icon(Icons.Filled.Delete, contentDescription = "Delete")
             }
         })
@@ -80,7 +105,9 @@ fun NoteEditorView(note: CampaignNote, onClose: () -> Unit) {
                 text,
                 minLines = 5,
                 onValueChange = { text = it; changed = true },
-                modifier = Modifier.height(300.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .height(300.dp)
+                    .fillMaxWidth(),
             )
             Button(enabled = changed, onClick = {
                 note.title = title
