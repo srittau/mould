@@ -10,25 +10,25 @@ import org.rittau.mould.R
 
 @Composable
 fun EdgeIcon(modifier: Modifier = Modifier) {
-    Icon(painterResource(R.drawable.edge), "Edge", modifier = modifier, tint = Color(0xFF00994C))
+    Icon(painterResource(R.drawable.edge), "Edge", modifier = modifier, tint = Color(0xFF88CFAC))
 }
 
 @Composable
 fun HeartIcon(modifier: Modifier = Modifier) {
-    Icon(painterResource(R.drawable.heart), "Heart", modifier = modifier, tint = Color.Red)
+    Icon(painterResource(R.drawable.heart), "Heart", modifier = modifier, tint = Color(0xFFFFA0A0))
 }
 
 @Composable
 fun IronIcon(modifier: Modifier = Modifier) {
-    Icon(painterResource(R.drawable.iron), "Iron", modifier = modifier, tint = Color(0xFF0066CC))
+    Icon(painterResource(R.drawable.iron), "Iron", modifier = modifier, tint = Color(0xFF99BBE0))
 }
 
 @Composable
 fun ShadowIcon(modifier: Modifier = Modifier) {
-    Icon(painterResource(R.drawable.shadow), "Shadow", modifier = modifier, tint = Color.DarkGray)
+    Icon(painterResource(R.drawable.shadow), "Shadow", modifier = modifier, tint = Color(0xFFAAAAAA))
 }
 
 @Composable
 fun WitsIcon(modifier: Modifier = Modifier) {
-    Icon(painterResource(R.drawable.wits), "Wits", modifier = modifier, tint = Color(0xFFFF8C00))
+    Icon(painterResource(R.drawable.wits), "Wits", modifier = modifier, tint = Color(0xFFFFC040))
 }
