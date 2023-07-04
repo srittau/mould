@@ -36,7 +36,7 @@ import org.rittau.mould.model.WorldNote
 import org.rittau.mould.ui.theme.MouldTheme
 
 enum class MouldScreen {
-    Character, Dice, Notes, NoteEditor, JournalEditor
+    Character, CharacterEditor, Dice, Notes, NoteEditor, JournalEditor
 }
 
 class MainActivity : ComponentActivity() {
@@ -83,7 +83,14 @@ fun Content(character: Character) {
                 modifier = Modifier.padding(innerPadding),
             ) {
                 composable(MouldScreen.Character.name) {
-                    CharacterSheet(character)
+                    CharacterSheet(character) {
+                        navController.navigate(MouldScreen.CharacterEditor.name)
+                    }
+                }
+                composable(MouldScreen.CharacterEditor.name) {
+                    CharacterEditor(character) {
+                        navController.popBackStack()
+                    }
                 }
                 composable(MouldScreen.Dice.name) {
                     DiceView()
