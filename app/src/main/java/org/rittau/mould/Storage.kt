@@ -20,7 +20,7 @@ import org.rittau.mould.model.WorldNote
 import java.util.UUID
 
 private val CAMPAIGN_UUID = UUID.fromString("6506c0fa-d589-4b51-b454-13d1ec7002b4")
-private val WORLD_ID = "default"
+private const val WORLD_ID = "default"
 
 @Entity(tableName = "scenarios")
 private data class DbScenario(
@@ -179,6 +179,29 @@ private interface CampaignNoteDao {
 private data class DbCharacter(
     @PrimaryKey @ColumnInfo(name = "campaign_uuid") val campaignUUID: UUID,
     @ColumnInfo val name: String,
+    @ColumnInfo(defaultValue = "") val summary: String = "",
+    @ColumnInfo(defaultValue = "0") val experience: Int = 0,
+    @ColumnInfo(defaultValue = "0") val spentExperience: Int = 0,
+    @ColumnInfo(defaultValue = "0") val bonds: Int = 0,
+    @ColumnInfo(defaultValue = "1") val edge: Int = 1,
+    @ColumnInfo(defaultValue = "1") val heart: Int = 1,
+    @ColumnInfo(defaultValue = "1") val iron: Int = 1,
+    @ColumnInfo(defaultValue = "1") val shadow: Int = 1,
+    @ColumnInfo(defaultValue = "1") val wits: Int = 1,
+    @ColumnInfo(defaultValue = "10") val maxMomentum: Int = 10,
+    @ColumnInfo(defaultValue = "2") val momentumReset: Int = 2,
+    @ColumnInfo(defaultValue = "2") val momentum: Int = 2,
+    @ColumnInfo(defaultValue = "5") val health: Int = 5,
+    @ColumnInfo(defaultValue = "5") val spirit: Int = 5,
+    @ColumnInfo(defaultValue = "5") val supply: Int = 5,
+    @ColumnInfo(defaultValue = "FALSE") val wounded: Boolean = false,
+    @ColumnInfo(defaultValue = "FALSE") val unprepared: Boolean = false,
+    @ColumnInfo(defaultValue = "FALSE") val shaken: Boolean = false,
+    @ColumnInfo(defaultValue = "FALSE") val encumbered: Boolean = false,
+    @ColumnInfo(defaultValue = "FALSE") val maimed: Boolean = false,
+    @ColumnInfo(defaultValue = "FALSE") val corrupted: Boolean = false,
+    @ColumnInfo(defaultValue = "FALSE") val cursed: Boolean = false,
+    @ColumnInfo(defaultValue = "FALSE") val tormented: Boolean = false,
 )
 
 @Dao
@@ -192,10 +215,11 @@ private interface CharacterDao {
 
 @Database(
     entities = [DbScenario::class, DbWorld::class, DbWorldNote::class, DbCampaign::class, DbCampaignNote::class, DbCharacter::class],
-    version = 3,
+    version = 4,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
+        AutoMigration(from = 3, to = 4),
     ],
 )
 private abstract class MouldDatabase : RoomDatabase() {
@@ -231,7 +255,18 @@ suspend fun initializeDatabase(applicationContext: android.content.Context) {
 }
 
 suspend fun saveCharacter(character: Character) {
-    getDb().characterDao().upsertCharacter(DbCharacter(CAMPAIGN_UUID, character.name))
+    getDb().characterDao().upsertCharacter(
+        DbCharacter(
+            CAMPAIGN_UUID,
+            name = character.name,
+            summary = character.summary,
+            edge = character.edge,
+            heart = character.heart,
+            iron = character.iron,
+            shadow = character.shadow,
+            wits = character.wits,
+        )
+    )
 }
 
 suspend fun loadCharacter(): Character {
@@ -240,7 +275,15 @@ suspend fun loadCharacter(): Character {
         return Character("")
     }
     val character = characters[0]
-    return Character(character.name)
+    return Character(
+        character.name,
+        character.summary,
+        character.edge,
+        character.heart,
+        character.iron,
+        character.shadow,
+        character.wits,
+    )
 }
 
 
