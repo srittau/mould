@@ -31,7 +31,6 @@ fun JournalPage(onOpenJournal: (CampaignNote) -> Unit) {
     val notes = remember {
         val l = mutableStateListOf<CampaignNote>()
         l.addAll(prepareNotes())
-        l.sortBy { it.title }
         l
     }
 

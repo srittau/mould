@@ -146,21 +146,25 @@ private data class DbCampaignNote(
     @ColumnInfo(name = "campaign_uuid") val campaignUUID: UUID,
     @ColumnInfo val title: String,
     @ColumnInfo val text: String,
+    @ColumnInfo(defaultValue = "0") val order: Int,
 )
 
 @Dao
 private interface CampaignNoteDao {
-    @Query("SELECT * FROM campaign_notes WHERE campaign_uuid = :campaignUUID")
+    @Query("SELECT * FROM campaign_notes WHERE campaign_uuid = :campaignUUID ORDER BY `order` DESC")
     suspend fun selectNotesByCampaign(campaignUUID: UUID): List<DbCampaignNote>
 
     @Insert
     suspend fun insertNote(note: DbCampaignNote)
 
-    @Update
-    suspend fun updateNote(note: DbCampaignNote)
+    @Query("UPDATE campaign_notes SET title = :title, text = :text WHERE uuid = :uuid")
+    suspend fun updateNote(uuid: UUID, title: String, text: String)
 
     @Query("DELETE FROM campaign_notes WHERE uuid = :uuid")
     suspend fun deleteNote(uuid: UUID)
+
+    @Query("SELECT MAX(`order`) FROM campaign_notes WHERE campaign_uuid = :campaignUUID")
+    suspend fun selectMaxOrder(campaignUUID: UUID): Int?
 }
 
 @Entity(
@@ -188,9 +192,10 @@ private interface CharacterDao {
 
 @Database(
     entities = [DbScenario::class, DbWorld::class, DbWorldNote::class, DbCampaign::class, DbCampaignNote::class, DbCharacter::class],
-    version = 2,
+    version = 3,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 2, to = 3),
     ],
 )
 private abstract class MouldDatabase : RoomDatabase() {
@@ -266,15 +271,15 @@ suspend fun loadCampaignNotes(): List<CampaignNote> {
 }
 
 suspend fun createCampaignNote(title: String, text: String): CampaignNote {
-    val note = DbCampaignNote(UUID.randomUUID(), CAMPAIGN_UUID, title, text)
-    getDb().campaignNoteDao().insertNote(note)
+    val db = getDb()
+    val order = (db.campaignNoteDao().selectMaxOrder(CAMPAIGN_UUID) ?: 0) + 1
+    val note = DbCampaignNote(UUID.randomUUID(), CAMPAIGN_UUID, title, text, order)
+    db.campaignNoteDao().insertNote(note)
     return CampaignNote(note.uuid, note.title, note.text)
 }
 
 suspend fun updateCampaignNote(note: CampaignNote) {
-    getDb().campaignNoteDao().updateNote(
-        DbCampaignNote(note.uuid, CAMPAIGN_UUID, note.title, note.text)
-    )
+    getDb().campaignNoteDao().updateNote(note.uuid, note.title, note.text)
 }
 
 suspend fun deleteCampaignNote(note: CampaignNote) {
