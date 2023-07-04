@@ -32,10 +32,11 @@ import org.rittau.mould.initializeDatabase
 import org.rittau.mould.loadCharacter
 import org.rittau.mould.model.CampaignNote
 import org.rittau.mould.model.Character
+import org.rittau.mould.model.WorldNote
 import org.rittau.mould.ui.theme.MouldTheme
 
 enum class MouldScreen {
-    Character, Dice, Notes, NoteEditor,
+    Character, Dice, Notes, NoteEditor, JournalEditor
 }
 
 class MainActivity : ComponentActivity() {
@@ -60,6 +61,9 @@ fun Content(character: Character) {
     val currentScreen =
         MouldScreen.valueOf(backStackEntry?.destination?.route ?: MouldScreen.Character.name)
     var currentNote by rememberSaveable {
+        mutableStateOf<WorldNote?>(null)
+    }
+    var currentJournal by rememberSaveable {
         mutableStateOf<CampaignNote?>(null)
     }
 
@@ -85,10 +89,13 @@ fun Content(character: Character) {
                     DiceView()
                 }
                 composable(MouldScreen.Notes.name) {
-                    NotesView {
+                    NotesView({
                         currentNote = it
                         navController.navigate(MouldScreen.NoteEditor.name)
-                    }
+                    }, {
+                        currentJournal = it
+                        navController.navigate(MouldScreen.JournalEditor.name)
+                    })
                 }
                 composable(MouldScreen.NoteEditor.name) {
                     val note = currentNote
@@ -96,6 +103,15 @@ fun Content(character: Character) {
                         NoteEditorView(note) {
                             navController.popBackStack()
                             currentNote = null
+                        }
+                    }
+                }
+                composable(MouldScreen.JournalEditor.name) {
+                    val journal = currentJournal
+                    if (journal != null) {
+                        JournalEditorView(journal) {
+                            navController.popBackStack()
+                            currentJournal = null
                         }
                     }
                 }

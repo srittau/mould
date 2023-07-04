@@ -27,14 +27,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
-import org.rittau.mould.deleteWorldNote
-import org.rittau.mould.model.WorldNote
-import org.rittau.mould.updateWorldNote
+import org.rittau.mould.deleteCampaignNote
+import org.rittau.mould.model.CampaignNote
+import org.rittau.mould.updateCampaignNote
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
+fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
     var title by rememberSaveable {
         mutableStateOf(note.title)
     }
@@ -46,7 +46,7 @@ fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
 
     fun onDelete() {
         runBlocking {
-            deleteWorldNote(note)
+            deleteCampaignNote(note)
         }
         onClose()
     }
@@ -67,15 +67,15 @@ fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
                     Text("Cancel")
                 }
             },
-            title = { Text(text = "Delete note?") },
-            text = { Text("Are you sure you want to delete this note?") },
+            title = { Text(text = "Delete journal entry?") },
+            text = { Text("Are you sure you want to delete this journal entry?") },
         )
     }
 
     Column {
         TopAppBar(title = {
             Text(
-                if (title != "") title else "Untitled note",
+                if (title != "") title else "Untitled journal entry",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -113,7 +113,7 @@ fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
                 note.title = title
                 note.text = text
                 runBlocking {
-                    updateWorldNote(note)
+                    updateCampaignNote(note)
                 }
                 changed = false
             }) {
@@ -126,6 +126,6 @@ fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
 @Preview(name = "Light Mode", showBackground = true)
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun NoteEditorViewPreview() {
-    NoteEditorView(WorldNote(UUID.randomUUID(), "Title", "Text\nwith multiple\n\nlines")) {}
+fun JournalEditorViewPreview() {
+    JournalEditorView(CampaignNote(UUID.randomUUID(), "Title", "Text\nwith multiple\n\nlines")) {}
 }

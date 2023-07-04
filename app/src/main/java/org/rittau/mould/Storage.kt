@@ -1,5 +1,6 @@
 package org.rittau.mould
 
+import androidx.room.AutoMigration
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
@@ -15,9 +16,11 @@ import androidx.room.Update
 import androidx.room.Upsert
 import org.rittau.mould.model.CampaignNote
 import org.rittau.mould.model.Character
+import org.rittau.mould.model.WorldNote
 import java.util.UUID
 
 private val CAMPAIGN_UUID = UUID.fromString("6506c0fa-d589-4b51-b454-13d1ec7002b4")
+private val WORLD_ID = "default"
 
 @Entity(tableName = "scenarios")
 private data class DbScenario(
@@ -47,6 +50,44 @@ private interface WorldDao {
 
     @Insert
     suspend fun insertWorld(world: DbWorld)
+}
+
+@Entity(
+    tableName = "world_notes",
+    foreignKeys = [
+        ForeignKey(
+            entity = DbWorld::class,
+            parentColumns = ["id"],
+            childColumns = ["world_id"],
+            onUpdate = ForeignKey.CASCADE,
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [
+        Index("world_id"),
+    ]
+)
+private data class DbWorldNote(
+    @PrimaryKey val uuid: UUID,
+    @ColumnInfo(name = "world_id") val worldID: String,
+    @ColumnInfo val title: String,
+    @ColumnInfo val summary: String,
+    @ColumnInfo val text: String,
+)
+
+@Dao
+private interface WorldNoteDao {
+    @Query("SELECT * FROM world_notes WHERE world_id = :worldID")
+    suspend fun selectNotesByWorld(worldID: String): List<DbWorldNote>
+
+    @Insert
+    suspend fun insertNote(note: DbWorldNote)
+
+    @Update
+    suspend fun updateNote(note: DbWorldNote)
+
+    @Query("DELETE FROM world_notes WHERE uuid = :uuid")
+    suspend fun deleteNote(uuid: UUID)
 }
 
 @Entity(
@@ -146,12 +187,16 @@ private interface CharacterDao {
 }
 
 @Database(
-    entities = [DbScenario::class, DbWorld::class, DbCampaign::class, DbCampaignNote::class, DbCharacter::class],
-    version = 1
+    entities = [DbScenario::class, DbWorld::class, DbWorldNote::class, DbCampaign::class, DbCampaignNote::class, DbCharacter::class],
+    version = 2,
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2),
+    ],
 )
 private abstract class MouldDatabase : RoomDatabase() {
     abstract fun scenarioDao(): ScenarioDao
     abstract fun worldDao(): WorldDao
+    abstract fun worldNoteDao(): WorldNoteDao
     abstract fun campaignDao(): CampaignDao
     abstract fun campaignNoteDao(): CampaignNoteDao
     abstract fun characterDao(): CharacterDao
@@ -169,12 +214,12 @@ suspend fun initializeDatabase(applicationContext: android.content.Context) {
         if (!scenarioDao().hasScenario("default")) {
             scenarioDao().insertScenario(DbScenario("default", "Default Scenario"))
         }
-        if (!worldDao().hasWorld("default")) {
-            worldDao().insertWorld(DbWorld("default", "Default World"))
+        if (!worldDao().hasWorld(WORLD_ID)) {
+            worldDao().insertWorld(DbWorld(WORLD_ID, "Default World"))
         }
         campaignDao().upsertCampaign(
             DbCampaign(
-                CAMPAIGN_UUID, "default", "default", "Default Campaign"
+                CAMPAIGN_UUID, "default", WORLD_ID, "Default Campaign"
             )
         )
     }
@@ -193,23 +238,45 @@ suspend fun loadCharacter(): Character {
     return Character(character.name)
 }
 
-suspend fun loadNotes(): List<CampaignNote> {
+
+suspend fun loadWorldNotes(): List<WorldNote> {
+    val notes = getDb().worldNoteDao().selectNotesByWorld(WORLD_ID)
+    return notes.map { WorldNote(it.uuid, it.title, it.summary, it.text) }
+}
+
+suspend fun createWorldNote(title: String, summary: String, text: String): WorldNote {
+    val note = DbWorldNote(UUID.randomUUID(), WORLD_ID, title, summary, text)
+    getDb().worldNoteDao().insertNote(note)
+    return WorldNote(note.uuid, note.title, note.summary, note.text)
+}
+
+suspend fun updateWorldNote(note: WorldNote) {
+    getDb().worldNoteDao().updateNote(
+        DbWorldNote(note.uuid, WORLD_ID, note.title, note.summary, note.text)
+    )
+}
+
+suspend fun deleteWorldNote(note: WorldNote) {
+    getDb().worldNoteDao().deleteNote(note.uuid)
+}
+
+suspend fun loadCampaignNotes(): List<CampaignNote> {
     val notes = getDb().campaignNoteDao().selectNotesByCampaign(CAMPAIGN_UUID)
     return notes.map { CampaignNote(it.uuid, it.title, it.text) }
 }
 
-suspend fun createNote(title: String, text: String): CampaignNote {
+suspend fun createCampaignNote(title: String, text: String): CampaignNote {
     val note = DbCampaignNote(UUID.randomUUID(), CAMPAIGN_UUID, title, text)
     getDb().campaignNoteDao().insertNote(note)
     return CampaignNote(note.uuid, note.title, note.text)
 }
 
-suspend fun updateNote(note: CampaignNote) {
+suspend fun updateCampaignNote(note: CampaignNote) {
     getDb().campaignNoteDao().updateNote(
         DbCampaignNote(note.uuid, CAMPAIGN_UUID, note.title, note.text)
     )
 }
 
-suspend fun deleteNote(note: CampaignNote) {
+suspend fun deleteCampaignNote(note: CampaignNote) {
     getDb().campaignNoteDao().deleteNote(note.uuid)
 }
