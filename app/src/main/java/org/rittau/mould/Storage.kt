@@ -4,16 +4,19 @@ import androidx.room.AutoMigration
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
+import androidx.room.DeleteColumn
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.RenameColumn
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Update
 import androidx.room.Upsert
+import androidx.room.migration.AutoMigrationSpec
 import org.rittau.mould.model.CampaignNote
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.WorldNote
@@ -181,15 +184,13 @@ private data class DbCharacter(
     @ColumnInfo val name: String,
     @ColumnInfo(defaultValue = "") val summary: String = "",
     @ColumnInfo(defaultValue = "0") val experience: Int = 0,
-    @ColumnInfo(defaultValue = "0") val spentExperience: Int = 0,
+    @ColumnInfo(name = "spent_experience", defaultValue = "0") val spentExperience: Int = 0,
     @ColumnInfo(defaultValue = "0") val bonds: Int = 0,
     @ColumnInfo(defaultValue = "1") val edge: Int = 1,
     @ColumnInfo(defaultValue = "1") val heart: Int = 1,
     @ColumnInfo(defaultValue = "1") val iron: Int = 1,
     @ColumnInfo(defaultValue = "1") val shadow: Int = 1,
     @ColumnInfo(defaultValue = "1") val wits: Int = 1,
-    @ColumnInfo(defaultValue = "10") val maxMomentum: Int = 10,
-    @ColumnInfo(defaultValue = "2") val momentumReset: Int = 2,
     @ColumnInfo(defaultValue = "2") val momentum: Int = 2,
     @ColumnInfo(defaultValue = "5") val health: Int = 5,
     @ColumnInfo(defaultValue = "5") val spirit: Int = 5,
@@ -215,14 +216,20 @@ private interface CharacterDao {
 
 @Database(
     entities = [DbScenario::class, DbWorld::class, DbWorldNote::class, DbCampaign::class, DbCampaignNote::class, DbCharacter::class],
-    version = 4,
+    version = 5,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
         AutoMigration(from = 3, to = 4),
+        AutoMigration(from = 4, to = 5, spec = MouldDatabase.DeleteMomentumMigration::class),
     ],
 )
 private abstract class MouldDatabase : RoomDatabase() {
+    @DeleteColumn("characters", "maxMomentum")
+    @DeleteColumn("characters", "momentumReset")
+    @RenameColumn("characters", "spentExperience", "spent_experience")
+    class DeleteMomentumMigration : AutoMigrationSpec
+
     abstract fun scenarioDao(): ScenarioDao
     abstract fun worldDao(): WorldDao
     abstract fun worldNoteDao(): WorldNoteDao
