@@ -68,6 +68,8 @@ class Character(
         get() = momentum < maxMomentum
     val canLoseMomentum: Boolean
         get() = momentum > MIN_MOMENTUM
+    val canResetMomentum: Boolean
+        get() = momentum >= 1
 
     fun gainMomentum(): Int {
         if (canGainMomentum) momentum++; return momentum
@@ -78,8 +80,14 @@ class Character(
     }
 
     fun resetMomentum(): Int {
-        momentum = momentumReset; return momentum
+        if (canResetMomentum) {
+            momentum = momentumReset
+        }
+        return momentum
     }
+
+    val momentumTrack: MomentumTrack
+        get() = MomentumTrack(this)
 
     //
     // Condition Tracks
@@ -164,6 +172,34 @@ interface ConditionTrack {
 
     fun lose(): Int {
         return 0
+    }
+}
+
+class MomentumTrack(val character: Character): ConditionTrack {
+    override val canGain: Boolean
+        get() = character.canGainMomentum
+    override val canLose: Boolean
+        get() = character.canLoseMomentum
+    val canReset: Boolean
+        get() = character.canResetMomentum
+
+    override val value: Int
+        get() = character.momentum
+    val max: Int
+        get() = character.maxMomentum
+    val resetValue: Int
+        get() = character.momentumReset
+
+    override fun gain(): Int {
+        return character.gainMomentum()
+    }
+
+    override fun lose(): Int {
+        return character.loseMomentum()
+    }
+
+    fun reset(): Int {
+        return character.resetMomentum()
     }
 }
 

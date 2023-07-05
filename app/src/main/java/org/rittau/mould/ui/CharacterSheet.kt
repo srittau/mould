@@ -46,6 +46,7 @@ fun CharacterSheet(character: Character, onEdit: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     StatsBlock(character, modifier = Modifier.padding(bottom = 32.dp))
+                    MomentumTrack(character)
                     ConditionTrack({ HealthIcon(modifier = it) }, character, character.healthTrack)
                     ConditionTrack({ SpiritIcon(modifier = it) }, character, character.spiritTrack)
                     ConditionTrack({ SupplyIcon(modifier = it) }, character, character.supplyTrack)
