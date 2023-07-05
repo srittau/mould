@@ -214,6 +214,61 @@ private interface CharacterDao {
     suspend fun upsertCharacter(character: DbCharacter)
 }
 
+private fun characterToDb(character: Character, campaignUUID: UUID): DbCharacter {
+    return DbCharacter(
+        campaignUUID,
+        name = character.name,
+        summary = character.summary,
+        experience = character.experience,
+        spentExperience = character.spentExperience,
+        bonds = character.bonds,
+        edge = character.edge,
+        heart = character.heart,
+        iron = character.iron,
+        shadow = character.shadow,
+        wits = character.wits,
+        momentum = character.momentum,
+        health = character.health,
+        spirit = character.spirit,
+        supply = character.supply,
+        wounded = character.wounded,
+        unprepared = character.unprepared,
+        shaken = character.shaken,
+        encumbered = character.encumbered,
+        maimed = character.maimed,
+        corrupted = character.corrupted,
+        cursed = character.cursed,
+        tormented = character.tormented,
+    )
+}
+
+private fun characterFromDb(dbCharacter: DbCharacter): Character {
+    return Character(
+        name = dbCharacter.name,
+        summary = dbCharacter.summary,
+        experience = dbCharacter.experience,
+        spentExperience = dbCharacter.spentExperience,
+        bonds = dbCharacter.bonds,
+        edge = dbCharacter.edge,
+        heart = dbCharacter.heart,
+        iron = dbCharacter.iron,
+        shadow = dbCharacter.shadow,
+        wits = dbCharacter.wits,
+        momentum = dbCharacter.momentum,
+        health = dbCharacter.health,
+        spirit = dbCharacter.spirit,
+        supply = dbCharacter.supply,
+        wounded = dbCharacter.wounded,
+        unprepared = dbCharacter.unprepared,
+        shaken = dbCharacter.shaken,
+        encumbered = dbCharacter.encumbered,
+        maimed = dbCharacter.maimed,
+        corrupted = dbCharacter.corrupted,
+        cursed = dbCharacter.cursed,
+        tormented = dbCharacter.tormented,
+    )
+}
+
 @Database(
     entities = [DbScenario::class, DbWorld::class, DbWorldNote::class, DbCampaign::class, DbCampaignNote::class, DbCharacter::class],
     version = 5,
@@ -262,18 +317,7 @@ suspend fun initializeDatabase(applicationContext: android.content.Context) {
 }
 
 suspend fun saveCharacter(character: Character) {
-    getDb().characterDao().upsertCharacter(
-        DbCharacter(
-            CAMPAIGN_UUID,
-            name = character.name,
-            summary = character.summary,
-            edge = character.edge,
-            heart = character.heart,
-            iron = character.iron,
-            shadow = character.shadow,
-            wits = character.wits,
-        )
-    )
+    getDb().characterDao().upsertCharacter(characterToDb(character, CAMPAIGN_UUID))
 }
 
 suspend fun loadCharacter(): Character {
@@ -281,16 +325,7 @@ suspend fun loadCharacter(): Character {
     if (characters.isEmpty()) {
         return Character("")
     }
-    val character = characters[0]
-    return Character(
-        character.name,
-        character.summary,
-        character.edge,
-        character.heart,
-        character.iron,
-        character.shadow,
-        character.wits,
-    )
+    return characterFromDb(characters[0])
 }
 
 

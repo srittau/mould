@@ -3,10 +3,8 @@ package org.rittau.mould.ui
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.rittau.mould.model.Character
 import org.rittau.mould.ui.theme.MouldTheme
 
@@ -48,32 +45,13 @@ fun CharacterSheet(character: Character, onEdit: () -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Stats(character)
+                    StatsBlock(character, modifier = Modifier.padding(bottom = 32.dp))
+                    ConditionTrack({ HealthIcon(modifier = it) }, character, character.healthTrack)
+                    ConditionTrack({ SpiritIcon(modifier = it) }, character, character.spiritTrack)
+                    ConditionTrack({ SupplyIcon(modifier = it) }, character, character.supplyTrack)
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Stats(character: Character, modifier: Modifier = Modifier) {
-    Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = modifier) {
-        Stat(character.edge) { EdgeIcon(modifier = it) }
-        Stat(character.heart) { HeartIcon(modifier = it) }
-        Stat(character.iron) { IronIcon(modifier = it) }
-        Stat(character.shadow) { ShadowIcon(modifier = it) }
-        Stat(character.wits) { WitsIcon(modifier = it) }
-    }
-}
-
-@Composable
-fun Stat(value: Int, icon: @Composable (modifier: Modifier) -> Unit) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        icon(modifier = Modifier.size(24.dp))
-        Text(value.toString(), fontSize = 24.sp)
     }
 }
 
