@@ -31,6 +31,7 @@ class Character(
     var corrupted: Boolean = false,
     var cursed: Boolean = false,
     var tormented: Boolean = false,
+    var notes: String = "",
 ) : Serializable {
     //
     // Experience & Bonds

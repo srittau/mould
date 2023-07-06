@@ -22,14 +22,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.ConditionTrack
 import org.rittau.mould.model.MAX_STATUS
 import org.rittau.mould.model.MIN_STATUS
-import org.rittau.mould.saveCharacter
+import org.rittau.mould.saveCharacterSync
 import org.rittau.mould.ui.theme.MouldTheme
 
 @Composable
@@ -44,16 +41,12 @@ fun ConditionTrack(
 
     fun onLose() {
         value = track.lose()
-        CoroutineScope(Dispatchers.IO).launch {
-            saveCharacter(character)
-        }
+        saveCharacterSync(character)
     }
 
     fun onGain() {
         value = track.gain()
-        CoroutineScope(Dispatchers.IO).launch {
-            saveCharacter(character)
-        }
+        saveCharacterSync(character)
     }
 
     Row(verticalAlignment = Alignment.CenterVertically) {

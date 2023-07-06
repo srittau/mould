@@ -30,12 +30,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.statsOk
-import org.rittau.mould.saveCharacter
+import org.rittau.mould.saveCharacterSync
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,10 +64,7 @@ fun CharacterEditor(character: Character, onBack: () -> Unit) {
         character.iron = iron.value
         character.shadow = shadow.value
         character.wits = wits.value
-        CoroutineScope(Dispatchers.IO).launch {
-            saveCharacter(character)
-        }
-
+        saveCharacterSync(character)
     }
 
     if (closeDialog) {

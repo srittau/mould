@@ -5,8 +5,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,7 +31,7 @@ import org.rittau.mould.ui.theme.MouldTheme
 fun CharacterSheet(character: Character, onEdit: () -> Unit) {
     val name = character.name.ifBlank { "Unnamed Character" }
     Surface {
-        Column {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             TopAppBar(
                 title = { Text(text = name) },
                 actions = {
@@ -39,7 +42,8 @@ fun CharacterSheet(character: Character, onEdit: () -> Unit) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             )
             Column(
-                verticalArrangement = Arrangement.Top, modifier = Modifier.padding(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(16.dp),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -51,6 +55,8 @@ fun CharacterSheet(character: Character, onEdit: () -> Unit) {
                     ConditionTrack({ SpiritIcon(modifier = it) }, character, character.spiritTrack)
                     ConditionTrack({ SupplyIcon(modifier = it) }, character, character.supplyTrack)
                 }
+                Divider()
+                CharacterNotes(character)
             }
         }
     }

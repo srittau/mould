@@ -17,6 +17,9 @@ import androidx.room.RoomDatabase
 import androidx.room.Update
 import androidx.room.Upsert
 import androidx.room.migration.AutoMigrationSpec
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.rittau.mould.model.CampaignNote
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.WorldNote
@@ -203,6 +206,7 @@ private data class DbCharacter(
     @ColumnInfo(defaultValue = "FALSE") val corrupted: Boolean = false,
     @ColumnInfo(defaultValue = "FALSE") val cursed: Boolean = false,
     @ColumnInfo(defaultValue = "FALSE") val tormented: Boolean = false,
+    @ColumnInfo(defaultValue = "") val notes: String = "",
 )
 
 @Dao
@@ -239,6 +243,7 @@ private fun characterToDb(character: Character, campaignUUID: UUID): DbCharacter
         corrupted = character.corrupted,
         cursed = character.cursed,
         tormented = character.tormented,
+        notes = character.notes,
     )
 }
 
@@ -266,17 +271,19 @@ private fun characterFromDb(dbCharacter: DbCharacter): Character {
         corrupted = dbCharacter.corrupted,
         cursed = dbCharacter.cursed,
         tormented = dbCharacter.tormented,
+        notes = dbCharacter.notes,
     )
 }
 
 @Database(
     entities = [DbScenario::class, DbWorld::class, DbWorldNote::class, DbCampaign::class, DbCampaignNote::class, DbCharacter::class],
-    version = 5,
+    version = 6,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
         AutoMigration(from = 3, to = 4),
         AutoMigration(from = 4, to = 5, spec = MouldDatabase.DeleteMomentumMigration::class),
+        AutoMigration(from = 5, to = 6),
     ],
 )
 private abstract class MouldDatabase : RoomDatabase() {
@@ -318,6 +325,12 @@ suspend fun initializeDatabase(applicationContext: android.content.Context) {
 
 suspend fun saveCharacter(character: Character) {
     getDb().characterDao().upsertCharacter(characterToDb(character, CAMPAIGN_UUID))
+}
+
+fun saveCharacterSync(character: Character) {
+    CoroutineScope(Dispatchers.IO).launch {
+        saveCharacter(character)
+    }
 }
 
 suspend fun loadCharacter(): Character {
