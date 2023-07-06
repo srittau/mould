@@ -16,7 +16,7 @@ import org.rittau.mould.model.WorldNote
 import org.rittau.mould.ui.theme.MouldTheme
 
 @Composable
-fun NotesView(onOpenNote: (WorldNote) -> Unit, onOpenJournal: (CampaignNote) -> Unit) {
+fun NotesView(onOpenNote: (WorldNote, Boolean) -> Unit, onOpenJournal: (CampaignNote) -> Unit) {
     var tab by rememberSaveable { mutableStateOf(0) }
 
     Column {
@@ -36,6 +36,6 @@ fun NotesView(onOpenNote: (WorldNote) -> Unit, onOpenJournal: (CampaignNote) -> 
 @Composable
 fun NotesViewPreview() {
     MouldTheme {
-        NotesView({}, {})
+        NotesView({ _, _ -> }, {})
     }
 }

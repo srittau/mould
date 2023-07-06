@@ -27,7 +27,7 @@ import org.rittau.mould.loadWorldNotes
 import org.rittau.mould.model.WorldNote
 
 @Composable
-fun NotesPage(onOpenNote: (WorldNote) -> Unit) {
+fun NotesPage(onOpenNote: (WorldNote, Boolean) -> Unit) {
     val notes = remember {
         val l = mutableStateListOf<WorldNote>()
         l.addAll(prepareNotes())
@@ -35,7 +35,7 @@ fun NotesPage(onOpenNote: (WorldNote) -> Unit) {
         l
     }
 
-    NotesList(notes, onOpenNote)
+    NotesList(notes)  { note -> onOpenNote(note, false) }
     Box(modifier = Modifier.fillMaxSize()) {
         FloatingActionButton(modifier = Modifier
             .padding(16.dp)
@@ -45,7 +45,7 @@ fun NotesPage(onOpenNote: (WorldNote) -> Unit) {
                     createWorldNote("", "","")
                 }
                 notes.add(note)
-                onOpenNote.invoke(note)
+                onOpenNote.invoke(note, true)
             }) {
             Icon(Icons.Filled.Add, "Add note")
         }

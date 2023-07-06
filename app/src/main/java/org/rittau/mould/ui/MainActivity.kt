@@ -36,7 +36,7 @@ import org.rittau.mould.model.WorldNote
 import org.rittau.mould.ui.theme.MouldTheme
 
 enum class MouldScreen {
-    Character, CharacterEditor, Dice, Notes, NoteEditor, JournalEditor
+    Character, CharacterEditor, Dice, Notes, Note, NoteEditor, JournalEditor
 }
 
 class MainActivity : ComponentActivity() {
@@ -96,20 +96,32 @@ fun Content(character: Character) {
                     DiceView()
                 }
                 composable(MouldScreen.Notes.name) {
-                    NotesView({
-                        currentNote = it
-                        navController.navigate(MouldScreen.NoteEditor.name)
+                    NotesView({ note, openEditor ->
+                        currentNote = note
+                        val target = if (openEditor) MouldScreen.NoteEditor else MouldScreen.Note
+                        navController.navigate(target.name)
                     }, {
                         currentJournal = it
                         navController.navigate(MouldScreen.JournalEditor.name)
                     })
+                }
+                composable(MouldScreen.Note.name) {
+                    val note = currentNote
+                    if (note != null) {
+                        NoteView(note, {
+                            currentNote = it
+                            navController.navigate(MouldScreen.NoteEditor.name)
+                        }, {
+                            navController.popBackStack()
+                            currentNote = null
+                        })
+                    }
                 }
                 composable(MouldScreen.NoteEditor.name) {
                     val note = currentNote
                     if (note != null) {
                         NoteEditorView(note) {
                             navController.popBackStack()
-                            currentNote = null
                         }
                     }
                 }
@@ -140,7 +152,9 @@ fun NavBar(activeView: MouldScreen, onChange: (MouldScreen) -> Unit) {
             onClick = { onChange(MouldScreen.Dice) })
         NavigationBarItem(icon = { Icon(Icons.Filled.NoteAlt, contentDescription = "Notes") },
             label = { Text("Notes") },
-            selected = activeView in arrayOf(MouldScreen.Notes, MouldScreen.NoteEditor),
+            selected = activeView in arrayOf(
+                MouldScreen.Notes, MouldScreen.Note, MouldScreen.NoteEditor
+            ),
             onClick = { onChange(MouldScreen.Notes) })
     }
 }

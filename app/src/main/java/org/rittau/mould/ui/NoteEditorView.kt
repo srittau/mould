@@ -42,6 +42,7 @@ fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
         mutableStateOf(note.text)
     }
     var changed by rememberSaveable { mutableStateOf(false) }
+    var closeDialog by rememberSaveable { mutableStateOf(false) }
     var deleteDialog by rememberSaveable { mutableStateOf(false) }
 
     fun onDelete() {
@@ -49,6 +50,26 @@ fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
             deleteWorldNote(note)
         }
         onClose()
+    }
+
+    if (closeDialog) {
+        AlertDialog(
+            onDismissRequest = { closeDialog = false },
+            confirmButton = {
+                Button(onClick = {
+                    closeDialog = false
+                    onClose()
+                }) {
+                    Text("Close")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { closeDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+            text = { Text("Close without saving?") },
+        )
     }
 
     if (deleteDialog) {
@@ -67,20 +88,27 @@ fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
                     Text("Cancel")
                 }
             },
-            title = { Text(text = "Delete note?") },
             text = { Text("Are you sure you want to delete this note?") },
         )
     }
 
+    fun onCloseClick() {
+        if (changed) {
+            closeDialog = true
+        } else {
+            onClose()
+        }
+    }
+
+    val displayTitle = if (title != "") title else "Untitled note"
+
     Column {
         TopAppBar(title = {
             Text(
-                if (title != "") title else "Untitled note",
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                "Editing $displayTitle", maxLines = 1, overflow = TextOverflow.Ellipsis
             )
         }, navigationIcon = {
-            IconButton(onClick = onClose) {
+            IconButton(onClick = { onCloseClick() }) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Save")
             }
         }, actions = {
