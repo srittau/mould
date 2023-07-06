@@ -3,6 +3,7 @@ package org.rittau.mould.ui
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
@@ -26,15 +28,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.rittau.mould.createBond
+import org.rittau.mould.deleteBond
 import org.rittau.mould.deleteWorldNote
+import org.rittau.mould.model.Character
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.updateWorldNote
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
+fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
     var title by rememberSaveable {
         mutableStateOf(note.title)
     }
@@ -42,8 +50,25 @@ fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
         mutableStateOf(note.text)
     }
     var changed by rememberSaveable { mutableStateOf(false) }
+    var bonded by rememberSaveable { mutableStateOf(character.isBondedTo(note.uuid)) }
     var closeDialog by rememberSaveable { mutableStateOf(false) }
     var deleteDialog by rememberSaveable { mutableStateOf(false) }
+
+    fun onFormBond() {
+        CoroutineScope(Dispatchers.IO).launch {
+            createBond(note.uuid)
+        }
+        character.forgeBond(note.uuid)
+        bonded = true
+    }
+
+    fun onClearBond() {
+        CoroutineScope(Dispatchers.IO).launch {
+            deleteBond(note.uuid)
+        }
+        character.clearBond(note.uuid)
+        bonded = false
+    }
 
     fun onDelete() {
         runBlocking {
@@ -137,15 +162,24 @@ fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
                     .height(300.dp)
                     .fillMaxWidth(),
             )
-            Button(enabled = changed, onClick = {
-                note.title = title
-                note.text = text
-                runBlocking {
-                    updateWorldNote(note)
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()
+            ) {
+                if (bonded) {
+                    OutlinedButton(onClick = { onClearBond() }) { Text("Clear bond") }
+                } else {
+                    OutlinedButton(onClick = { onFormBond() }) { Text("Forge bond") }
                 }
-                changed = false
-            }) {
-                Text("Save")
+                Button(enabled = changed, onClick = {
+                    note.title = title
+                    note.text = text
+                    runBlocking {
+                        updateWorldNote(note)
+                    }
+                    changed = false
+                }) {
+                    Text("Save")
+                }
             }
         }
     }
@@ -155,5 +189,13 @@ fun NoteEditorView(note: WorldNote, onClose: () -> Unit) {
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun NoteEditorViewPreview() {
-    NoteEditorView(WorldNote(UUID.randomUUID(), "Title", "Text\nwith multiple\n\nlines")) {}
+    NoteEditorView(
+        Character("Joe"),
+        WorldNote(
+            UUID.randomUUID(),
+            "Title",
+            "Summary",
+            "Text\nwith multiple\n\nlines"
+        )
+    ) {}
 }

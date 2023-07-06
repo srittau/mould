@@ -5,12 +5,16 @@ import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.DeleteColumn
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.Insert
+import androidx.room.Junction
+import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.Relation
 import androidx.room.RenameColumn
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -188,7 +192,6 @@ private data class DbCharacter(
     @ColumnInfo(defaultValue = "") val summary: String = "",
     @ColumnInfo(defaultValue = "0") val experience: Int = 0,
     @ColumnInfo(name = "spent_experience", defaultValue = "0") val spentExperience: Int = 0,
-    @ColumnInfo(defaultValue = "0") val bonds: Int = 0,
     @ColumnInfo(defaultValue = "1") val edge: Int = 1,
     @ColumnInfo(defaultValue = "1") val heart: Int = 1,
     @ColumnInfo(defaultValue = "1") val iron: Int = 1,
@@ -209,10 +212,55 @@ private data class DbCharacter(
     @ColumnInfo(defaultValue = "") val notes: String = "",
 )
 
+@Entity(
+    tableName = "bonds",
+    primaryKeys = ["campaign_uuid", "world_note_uuid"],
+    foreignKeys = [ForeignKey(
+        entity = DbCharacter::class,
+        parentColumns = ["campaign_uuid"],
+        childColumns = ["campaign_uuid"],
+        onUpdate = ForeignKey.CASCADE,
+        onDelete = ForeignKey.CASCADE,
+    ), ForeignKey(
+        entity = DbWorldNote::class,
+        parentColumns = ["uuid"],
+        childColumns = ["world_note_uuid"],
+        onUpdate = ForeignKey.CASCADE,
+        onDelete = ForeignKey.CASCADE,
+    )],
+    indices = [Index("campaign_uuid"), Index("world_note_uuid")],
+)
+private data class DbBond(
+    @ColumnInfo(name = "campaign_uuid") val characterUUID: UUID,
+    @ColumnInfo(name = "world_note_uuid") val worldNoteUUID: UUID,
+)
+
+@Dao
+private interface BondDao {
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertBond(bond: DbBond)
+
+    @Query("DELETE FROM bonds WHERE campaign_uuid = :characterUUID AND world_note_uuid = :worldNoteUUID")
+    suspend fun deleteBond(characterUUID: UUID, worldNoteUUID: UUID)
+}
+
+private data class DbCharacterWithBonds(
+    @Embedded val character: DbCharacter,
+    @Relation(
+        parentColumn = "campaign_uuid",
+        entityColumn = "uuid",
+        associateBy = Junction(
+            DbBond::class,
+            parentColumn = "world_note_uuid",
+            entityColumn = "campaign_uuid"
+        )
+    ) val bonds: List<DbWorldNote>,
+)
+
 @Dao
 private interface CharacterDao {
     @Query("SELECT * FROM characters WHERE campaign_uuid = :campaignUUID")
-    suspend fun selectCharacter(campaignUUID: UUID): List<DbCharacter>
+    suspend fun selectCharacter(campaignUUID: UUID): List<DbCharacterWithBonds>
 
     @Upsert
     suspend fun upsertCharacter(character: DbCharacter)
@@ -225,7 +273,6 @@ private fun characterToDb(character: Character, campaignUUID: UUID): DbCharacter
         summary = character.summary,
         experience = character.experience,
         spentExperience = character.spentExperience,
-        bonds = character.bonds,
         edge = character.edge,
         heart = character.heart,
         iron = character.iron,
@@ -247,13 +294,13 @@ private fun characterToDb(character: Character, campaignUUID: UUID): DbCharacter
     )
 }
 
-private fun characterFromDb(dbCharacter: DbCharacter): Character {
+private fun characterFromDb(dbBondedCharacter: DbCharacterWithBonds): Character {
+    val dbCharacter = dbBondedCharacter.character
     return Character(
         name = dbCharacter.name,
         summary = dbCharacter.summary,
         experience = dbCharacter.experience,
         spentExperience = dbCharacter.spentExperience,
-        bonds = dbCharacter.bonds,
         edge = dbCharacter.edge,
         heart = dbCharacter.heart,
         iron = dbCharacter.iron,
@@ -272,18 +319,20 @@ private fun characterFromDb(dbCharacter: DbCharacter): Character {
         cursed = dbCharacter.cursed,
         tormented = dbCharacter.tormented,
         notes = dbCharacter.notes,
+        bonds = (dbBondedCharacter.bonds.map { it.uuid }).toSet(),
     )
 }
 
 @Database(
-    entities = [DbScenario::class, DbWorld::class, DbWorldNote::class, DbCampaign::class, DbCampaignNote::class, DbCharacter::class],
-    version = 6,
+    entities = [DbScenario::class, DbWorld::class, DbWorldNote::class, DbCampaign::class, DbCampaignNote::class, DbCharacter::class, DbBond::class],
+    version = 7,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
         AutoMigration(from = 3, to = 4),
         AutoMigration(from = 4, to = 5, spec = MouldDatabase.DeleteMomentumMigration::class),
         AutoMigration(from = 5, to = 6),
+        AutoMigration(from = 6, to = 7, spec = MouldDatabase.DeleteBonds::class),
     ],
 )
 private abstract class MouldDatabase : RoomDatabase() {
@@ -292,12 +341,16 @@ private abstract class MouldDatabase : RoomDatabase() {
     @RenameColumn("characters", "spentExperience", "spent_experience")
     class DeleteMomentumMigration : AutoMigrationSpec
 
+    @DeleteColumn("characters", "bonds")
+    class DeleteBonds : AutoMigrationSpec
+
     abstract fun scenarioDao(): ScenarioDao
     abstract fun worldDao(): WorldDao
     abstract fun worldNoteDao(): WorldNoteDao
     abstract fun campaignDao(): CampaignDao
     abstract fun campaignNoteDao(): CampaignNoteDao
     abstract fun characterDao(): CharacterDao
+    abstract fun bondDao(): BondDao
 }
 
 private var db: MouldDatabase? = null
@@ -382,4 +435,12 @@ suspend fun updateCampaignNote(note: CampaignNote) {
 
 suspend fun deleteCampaignNote(note: CampaignNote) {
     getDb().campaignNoteDao().deleteNote(note.uuid)
+}
+
+suspend fun createBond(worldNoteUUID: UUID) {
+    getDb().bondDao().insertBond(DbBond(CAMPAIGN_UUID, worldNoteUUID))
+}
+
+suspend fun deleteBond(worldNoteUUID: UUID) {
+    getDb().bondDao().deleteBond(CAMPAIGN_UUID, worldNoteUUID)
 }

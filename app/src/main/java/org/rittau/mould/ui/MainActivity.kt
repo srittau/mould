@@ -108,7 +108,7 @@ fun Content(character: Character) {
                 composable(MouldScreen.Note.name) {
                     val note = currentNote
                     if (note != null) {
-                        NoteView(note, {
+                        NoteView(character, note, {
                             currentNote = it
                             navController.navigate(MouldScreen.NoteEditor.name)
                         }, {
@@ -120,7 +120,7 @@ fun Content(character: Character) {
                 composable(MouldScreen.NoteEditor.name) {
                     val note = currentNote
                     if (note != null) {
-                        NoteEditorView(note) {
+                        NoteEditorView(character, note) {
                             navController.popBackStack()
                         }
                     }

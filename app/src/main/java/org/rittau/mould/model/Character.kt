@@ -1,6 +1,7 @@
 package org.rittau.mould.model
 
 import java.io.Serializable
+import java.util.UUID
 
 const val MIN_MOMENTUM = -6
 const val MAX_MOMENTUM = 10
@@ -13,7 +14,7 @@ class Character(
     var summary: String = "",
     var experience: Int = 0,
     var spentExperience: Int = 0,
-    var bonds: Int = 0,
+    private var bonds: Set<UUID> = emptySet(),
     var edge: Int = 1,
     var heart: Int = 1,
     var iron: Int = 1,
@@ -34,7 +35,7 @@ class Character(
     var notes: String = "",
 ) : Serializable {
     //
-    // Experience & Bonds
+    // Experience
     //
 
     fun gainExperience(amount: Int): Int {
@@ -47,10 +48,6 @@ class Character(
         }
         spentExperience += amount
         return spentExperience
-    }
-
-    fun gainBond(): Int {
-        bonds++; return bonds
     }
 
     //
@@ -159,6 +156,18 @@ class Character(
             if (tormented) count++
             return count
         }
+
+    // Bonds
+
+    val bondCount: Int
+        get() = bonds.size
+    fun forgeBond(uuid: UUID) {
+        bonds += uuid
+    }
+    fun clearBond(uuid: UUID) {
+        bonds -= uuid
+    }
+    fun isBondedTo(uuid: UUID): Boolean = bonds.contains(uuid)
 }
 
 interface ConditionTrack {
