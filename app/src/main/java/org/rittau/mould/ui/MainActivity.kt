@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.IndeterminateCheckBox
 import androidx.compose.material.icons.filled.NoteAlt
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
@@ -36,7 +37,7 @@ import org.rittau.mould.model.WorldNote
 import org.rittau.mould.ui.theme.MouldTheme
 
 enum class MouldScreen {
-    Character, CharacterEditor, Dice, Notes, Note, NoteEditor, JournalEditor
+    Character, CharacterEditor, Progress, Dice, Notes, Note, NoteEditor, JournalEditor
 }
 
 class MainActivity : ComponentActivity() {
@@ -86,6 +87,9 @@ fun Content(character: Character) {
                     CharacterSheet(character) {
                         navController.navigate(MouldScreen.CharacterEditor.name)
                     }
+                }
+                composable(MouldScreen.Progress.name) {
+                    ProgressView(character)
                 }
                 composable(MouldScreen.CharacterEditor.name) {
                     CharacterEditor(character) {
@@ -146,6 +150,10 @@ fun NavBar(activeView: MouldScreen, onChange: (MouldScreen) -> Unit) {
             label = { Text("Character") },
             selected = activeView == MouldScreen.Character,
             onClick = { onChange(MouldScreen.Character) })
+        NavigationBarItem(icon = { Icon(Icons.Filled.IndeterminateCheckBox, contentDescription = "Progress") },
+            label = { Text("Progress") },
+            selected = activeView == MouldScreen.Progress,
+            onClick = { onChange(MouldScreen.Progress) })
         NavigationBarItem(icon = { Icon(Icons.Filled.Casino, contentDescription = "Dice") },
             label = { Text("Dice") },
             selected = activeView == MouldScreen.Dice,
