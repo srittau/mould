@@ -17,9 +17,9 @@ data class ProgressTrack(
 ) : Serializable
 
 fun addProgress(progress: Int, rank: ChallengeRank) = when (rank) {
-    ChallengeRank.Troublesome -> progress + 1
-    ChallengeRank.Dangerous -> progress + 2
+    ChallengeRank.Troublesome -> progress + 12
+    ChallengeRank.Dangerous -> progress + 8
     ChallengeRank.Formidable -> progress + 4
-    ChallengeRank.Extreme -> progress + 8
-    ChallengeRank.Epic -> progress + 12
+    ChallengeRank.Extreme -> progress + 2
+    ChallengeRank.Epic -> progress + 1
 }
