@@ -14,7 +14,7 @@ class Character(
     var summary: String = "",
     var experience: Int = 0,
     var spentExperience: Int = 0,
-    private var bonds: Set<UUID> = emptySet(),
+    var bonds: Set<UUID> = emptySet(),
     var edge: Int = 1,
     var heart: Int = 1,
     var iron: Int = 1,

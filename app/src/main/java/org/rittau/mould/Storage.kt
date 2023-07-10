@@ -5,19 +5,17 @@ import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.DeleteColumn
-import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.Insert
-import androidx.room.Junction
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
-import androidx.room.Relation
 import androidx.room.RenameColumn
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import androidx.room.migration.AutoMigrationSpec
@@ -89,6 +87,9 @@ private data class DbWorldNote(
 private interface WorldNoteDao {
     @Query("SELECT * FROM world_notes WHERE world_id = :worldID")
     suspend fun selectNotesByWorld(worldID: String): List<DbWorldNote>
+
+    @Query("SELECT * FROM world_notes JOIN bonds ON world_notes.uuid = bonds.world_note_uuid WHERE bonds.campaign_uuid = :campaignUUID")
+    suspend fun selectNotesByBond(campaignUUID: UUID): List<DbWorldNote>
 
     @Insert
     suspend fun insertNote(note: DbWorldNote)
@@ -244,23 +245,11 @@ private interface BondDao {
     suspend fun deleteBond(characterUUID: UUID, worldNoteUUID: UUID)
 }
 
-private data class DbCharacterWithBonds(
-    @Embedded val character: DbCharacter,
-    @Relation(
-        parentColumn = "campaign_uuid",
-        entityColumn = "uuid",
-        associateBy = Junction(
-            DbBond::class,
-            parentColumn = "world_note_uuid",
-            entityColumn = "campaign_uuid"
-        )
-    ) val bonds: List<DbWorldNote>,
-)
-
 @Dao
 private interface CharacterDao {
+    @Transaction
     @Query("SELECT * FROM characters WHERE campaign_uuid = :campaignUUID")
-    suspend fun selectCharacter(campaignUUID: UUID): List<DbCharacterWithBonds>
+    suspend fun selectCharacter(campaignUUID: UUID): List<DbCharacter>
 
     @Upsert
     suspend fun upsertCharacter(character: DbCharacter)
@@ -294,8 +283,7 @@ private fun characterToDb(character: Character, campaignUUID: UUID): DbCharacter
     )
 }
 
-private fun characterFromDb(dbBondedCharacter: DbCharacterWithBonds): Character {
-    val dbCharacter = dbBondedCharacter.character
+private fun characterFromDb(dbCharacter: DbCharacter, bonds: List<DbWorldNote>): Character {
     return Character(
         name = dbCharacter.name,
         summary = dbCharacter.summary,
@@ -319,7 +307,7 @@ private fun characterFromDb(dbBondedCharacter: DbCharacterWithBonds): Character 
         cursed = dbCharacter.cursed,
         tormented = dbCharacter.tormented,
         notes = dbCharacter.notes,
-        bonds = (dbBondedCharacter.bonds.map { it.uuid }).toSet(),
+        bonds = (bonds.map { it.uuid }).toSet(),
     )
 }
 
@@ -391,7 +379,9 @@ suspend fun loadCharacter(): Character {
     if (characters.isEmpty()) {
         return Character("")
     }
-    return characterFromDb(characters[0])
+    val bonds = getDb().worldNoteDao().selectNotesByBond(CAMPAIGN_UUID)
+    System.out.println("Bonds: ${bonds.size}")
+    return characterFromDb(characters[0], bonds)
 }
 
 
