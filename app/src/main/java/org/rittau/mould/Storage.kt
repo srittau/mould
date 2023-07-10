@@ -23,7 +23,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.rittau.mould.model.CampaignNote
+import org.rittau.mould.model.ChallengeRank
 import org.rittau.mould.model.Character
+import org.rittau.mould.model.ProgressTrack
+import org.rittau.mould.model.ProgressCompletion
 import org.rittau.mould.model.WorldNote
 import java.util.UUID
 
@@ -311,9 +314,75 @@ private fun characterFromDb(dbCharacter: DbCharacter, bonds: List<DbWorldNote>):
     )
 }
 
+@Entity(
+    tableName = "progress", foreignKeys = [ForeignKey(
+        entity = DbCampaign::class,
+        parentColumns = ["uuid"],
+        childColumns = ["campaign_uuid"],
+        onUpdate = ForeignKey.CASCADE,
+        onDelete = ForeignKey.CASCADE,
+    )]
+)
+private data class DbProgress(
+    @PrimaryKey @ColumnInfo val uuid: UUID,
+    @ColumnInfo(name = "campaign_uuid") val campaignUUID: UUID,
+    @ColumnInfo val name: String,
+    @ColumnInfo(name = "challenge_rank") val challengeRank: ChallengeRank,
+    @ColumnInfo(defaultValue = "") val notes: String = "",
+    @ColumnInfo val progress: Int = 0,
+    @ColumnInfo val completion: ProgressCompletion = ProgressCompletion.InProgress,
+)
+
+private fun progressToDb(progress: ProgressTrack, campaignUUID: UUID): DbProgress {
+    return DbProgress(
+        progress.uuid,
+        campaignUUID,
+        progress.name,
+        progress.challengeRank,
+        progress.notes,
+        progress.progress,
+        progress.completion,
+    )
+}
+
+private fun progressFromDb(dbProgress: DbProgress): ProgressTrack {
+    return ProgressTrack(
+        dbProgress.uuid,
+        dbProgress.name,
+        dbProgress.challengeRank,
+        dbProgress.notes,
+        dbProgress.progress,
+        dbProgress.completion,
+    )
+}
+
+@Dao
+private interface ProgressDao {
+    @Query("SELECT * FROM progress WHERE campaign_uuid = :campaignUUID")
+    suspend fun selectProgress(campaignUUID: UUID): List<DbProgress>
+
+    @Insert
+    suspend fun insertProgress(progress: DbProgress)
+
+    @Update
+    suspend fun updateProgress(progress: DbProgress)
+
+    @Query("DELETE FROM progress WHERE uuid = :uuid")
+    suspend fun deleteProgress(uuid: UUID)
+}
+
 @Database(
-    entities = [DbScenario::class, DbWorld::class, DbWorldNote::class, DbCampaign::class, DbCampaignNote::class, DbCharacter::class, DbBond::class],
-    version = 7,
+    entities = [
+        DbScenario::class,
+        DbWorld::class,
+        DbWorldNote::class,
+        DbCampaign::class,
+        DbCampaignNote::class,
+        DbCharacter::class,
+        DbBond::class,
+        DbProgress::class,
+    ],
+    version = 8,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -321,6 +390,7 @@ private fun characterFromDb(dbCharacter: DbCharacter, bonds: List<DbWorldNote>):
         AutoMigration(from = 4, to = 5, spec = MouldDatabase.DeleteMomentumMigration::class),
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 6, to = 7, spec = MouldDatabase.DeleteBonds::class),
+        AutoMigration(from = 7, to = 8),
     ],
 )
 private abstract class MouldDatabase : RoomDatabase() {
@@ -339,6 +409,7 @@ private abstract class MouldDatabase : RoomDatabase() {
     abstract fun campaignNoteDao(): CampaignNoteDao
     abstract fun characterDao(): CharacterDao
     abstract fun bondDao(): BondDao
+    abstract fun progressDao(): ProgressDao
 }
 
 private var db: MouldDatabase? = null
@@ -433,4 +504,31 @@ suspend fun createBond(worldNoteUUID: UUID) {
 
 suspend fun deleteBond(worldNoteUUID: UUID) {
     getDb().bondDao().deleteBond(CAMPAIGN_UUID, worldNoteUUID)
+}
+
+suspend fun loadProgress(): List<ProgressTrack> {
+    val progress = getDb().progressDao().selectProgress(CAMPAIGN_UUID)
+    return progress.map { progressFromDb(it) }
+}
+
+suspend fun createProgress(name: String, challengeRank: ChallengeRank, notes: String): ProgressTrack {
+    val dbProgress = DbProgress(
+        UUID.randomUUID(),
+        CAMPAIGN_UUID,
+        name,
+        challengeRank,
+        notes,
+        0,
+        ProgressCompletion.InProgress
+    )
+    getDb().progressDao().insertProgress(dbProgress)
+    return progressFromDb(dbProgress)
+}
+
+suspend fun updateProgress(progress: ProgressTrack) {
+    getDb().progressDao().updateProgress(progressToDb(progress, CAMPAIGN_UUID))
+}
+
+suspend fun deleteProgress(uuid: UUID) {
+    getDb().progressDao().deleteProgress(uuid)
 }

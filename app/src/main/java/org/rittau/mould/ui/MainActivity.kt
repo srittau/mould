@@ -31,13 +31,15 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.runBlocking
 import org.rittau.mould.initializeDatabase
 import org.rittau.mould.loadCharacter
+import org.rittau.mould.loadProgress
 import org.rittau.mould.model.CampaignNote
 import org.rittau.mould.model.Character
+import org.rittau.mould.model.ProgressTrack
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.ui.theme.MouldTheme
 
 enum class MouldScreen {
-    Character, CharacterEditor, Progress, Dice, Notes, Note, NoteEditor, JournalEditor
+    Character, CharacterEditor, Progress, ProgressEditor, Dice, Notes, Note, NoteEditor, JournalEditor
 }
 
 class MainActivity : ComponentActivity() {
@@ -48,15 +50,21 @@ class MainActivity : ComponentActivity() {
             initializeDatabase(applicationContext)
             loadCharacter()
         }
+        val progress = runBlocking { loadProgress() }
 
         setContent {
-            Content(character)
+            Content(character, progress)
         }
     }
 }
 
 @Composable
-fun Content(character: Character) {
+fun Content(character: Character, progress: List<ProgressTrack>) {
+    val progressTracks = rememberSaveable {
+        val l = mutableListOf<ProgressTrack>()
+        l.addAll(progress)
+        l
+    }
     val navController: NavHostController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen =
@@ -89,7 +97,17 @@ fun Content(character: Character) {
                     }
                 }
                 composable(MouldScreen.Progress.name) {
-                    ProgressView(character)
+                    ProgressView(character, progressTracks) {
+                        navController.navigate(MouldScreen.ProgressEditor.name)
+                    }
+                }
+                composable(MouldScreen.ProgressEditor.name) {
+                    ProgressEditorView({
+                        progressTracks.add(it)
+                        navController.popBackStack()
+                    }) {
+                        navController.popBackStack()
+                    }
                 }
                 composable(MouldScreen.CharacterEditor.name) {
                     CharacterEditor(character) {
@@ -150,9 +168,13 @@ fun NavBar(activeView: MouldScreen, onChange: (MouldScreen) -> Unit) {
             label = { Text("Character") },
             selected = activeView == MouldScreen.Character,
             onClick = { onChange(MouldScreen.Character) })
-        NavigationBarItem(icon = { Icon(Icons.Filled.IndeterminateCheckBox, contentDescription = "Progress") },
+        NavigationBarItem(icon = {
+            Icon(
+                Icons.Filled.IndeterminateCheckBox, contentDescription = "Progress"
+            )
+        },
             label = { Text("Progress") },
-            selected = activeView == MouldScreen.Progress,
+            selected = activeView in arrayOf(MouldScreen.Progress, MouldScreen.ProgressEditor),
             onClick = { onChange(MouldScreen.Progress) })
         NavigationBarItem(icon = { Icon(Icons.Filled.Casino, contentDescription = "Dice") },
             label = { Text("Dice") },
