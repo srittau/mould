@@ -30,7 +30,7 @@ fun ChallengeIndicator(rank: ChallengeRank, modifier: Modifier = Modifier) {
             }
             ChallengeRank.Formidable -> ProgressBox(4, modifier = Modifier.scale(.5f), color = COLOR_FORMIDABLE)
             ChallengeRank.Extreme -> ProgressBox(2, modifier = Modifier.scale(.5f), color = COLOR_EXTREME)
-            ChallengeRank.Troublesome -> ProgressBox(1, modifier = Modifier.scale(.5f), color = COLOR_EPIC)
+            ChallengeRank.Epic -> ProgressBox(1, modifier = Modifier.scale(.5f), color = COLOR_EPIC)
         }
     }
 }
