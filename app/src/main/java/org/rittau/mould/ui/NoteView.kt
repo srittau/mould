@@ -74,15 +74,19 @@ fun NoteView(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                NoteTypeIcon(note.type, modifier = Modifier.size(18.dp))
+                Text(note.type.name, style = MaterialTheme.typography.titleMedium)
+            }
             if (character.isBondedTo(note.uuid)) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painterResource(R.drawable.bond), "Bonded", modifier = Modifier.size(24.dp),
+                        painterResource(R.drawable.bond), "Bonded", modifier = Modifier.size(18.dp),
                     )
-                    Text("Bonded", style = MaterialTheme.typography.titleLarge)
+                    Text("Bonded", style = MaterialTheme.typography.titleMedium)
                 }
             }
             MarkdownText(note.text, style = MaterialTheme.typography.bodyLarge)

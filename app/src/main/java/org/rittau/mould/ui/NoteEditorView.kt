@@ -13,7 +13,10 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
@@ -23,6 +26,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -50,6 +54,9 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
     var title by rememberSaveable {
         mutableStateOf(note.title)
     }
+    var type by rememberSaveable {
+        mutableStateOf(note.type)
+    }
     var summary by rememberSaveable {
         mutableStateOf(note.summary)
     }
@@ -60,6 +67,17 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
     var bonded by rememberSaveable { mutableStateOf(character.isBondedTo(note.uuid)) }
     var closeDialog by rememberSaveable { mutableStateOf(false) }
     var deleteDialog by rememberSaveable { mutableStateOf(false) }
+
+    fun onSave() {
+        note.title = title
+        note.type = type
+        note.summary = summary
+        note.text = text
+        runBlocking {
+            updateWorldNote(note)
+        }
+        changed = false
+    }
 
     fun onFormBond() {
         CoroutineScope(Dispatchers.IO).launch {
@@ -162,6 +180,7 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
                 onValueChange = { title = it; changed = true },
                 modifier = Modifier.fillMaxWidth(),
             )
+            NoteTypeSelect(type) { type = it; changed = true }
             TextField(
                 summary,
                 label = { Text("Summary") },
@@ -187,23 +206,50 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
                     OutlinedButton(onClick = { onFormBond() }) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Icon(
-                                painterResource(R.drawable.bond), "Bonded", modifier = Modifier.size(24.dp),
+                                painterResource(R.drawable.bond),
+                                "Bonded",
+                                modifier = Modifier.size(24.dp),
                             )
                             Text("Forge bond")
                         }
                     }
                 }
-                Button(enabled = changed, onClick = {
-                    note.title = title
-                    note.summary = summary
-                    note.text = text
-                    runBlocking {
-                        updateWorldNote(note)
-                    }
-                    changed = false
-                }) {
+                Button(enabled = changed, onClick = { onSave() }) {
                     Text("Save")
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NoteTypeSelect(value: WorldNoteType, onChange: (WorldNoteType) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+        TextField(
+            value.name,
+            readOnly = true,
+            singleLine = true,
+            label = { Text("Type") },
+            leadingIcon = { NoteTypeIcon(value, modifier = Modifier.size(24.dp)) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+            },
+            onValueChange = {},
+            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            for (type in WorldNoteType.values()) {
+                DropdownMenuItem(
+                    text = { Text(type.name) },
+                    leadingIcon = { NoteTypeIcon(type, modifier = Modifier.size(24.dp)) },
+                    onClick = { onChange(type); expanded = false },
+                )
             }
         }
     }
@@ -214,8 +260,7 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
 @Composable
 fun NoteEditorViewPreview() {
     NoteEditorView(
-        Character("Joe"),
-        WorldNote(
+        Character("Joe"), WorldNote(
             UUID.randomUUID(),
             "Title",
             WorldNoteType.World,

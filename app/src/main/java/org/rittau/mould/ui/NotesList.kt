@@ -34,7 +34,10 @@ fun NoteItem(character: Character, note: WorldNote, onClick: (WorldNote) -> Unit
                 maxLines = 1,
             )
         },
-        supportingContent = { Text(note.summary, maxLines = 1) },
+        supportingContent = { if (note.summary.isNotEmpty()) { Text(note.summary, maxLines = 1) } },
+        leadingContent = {
+            NoteTypeIcon(note.type, modifier = Modifier.size(24.dp))
+        },
         trailingContent = {
             if (character.isBondedTo(note.uuid)) {
                 Icon(
