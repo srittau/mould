@@ -97,6 +97,9 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Save")
             }
         }, actions = {
+            Button(onClick = { onSave() }, enabled = changed) {
+                Text("Save")
+            }
             IconButton(onClick = { deleteDialog = true }) {
                 Icon(Icons.Filled.Delete, contentDescription = "Delete")
             }
@@ -131,9 +134,6 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
                     .height(300.dp)
                     .fillMaxWidth(),
             )
-            Button(enabled = changed, onClick = { onSave() }) {
-                Text("Save")
-            }
         }
     }
 }
