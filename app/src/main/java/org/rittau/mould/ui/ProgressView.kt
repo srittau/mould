@@ -1,6 +1,7 @@
 package org.rittau.mould.ui
 
 import android.content.res.Configuration
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,14 +38,19 @@ import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProgressView(character: Character, progress: List<ProgressTrack>, onAddProgress: () -> Unit) {
+fun ProgressView(
+    character: Character,
+    progress: List<ProgressTrack>,
+    onBondsClick: () -> Unit,
+    onAddProgress: () -> Unit,
+) {
     val name = character.name.ifBlank { "Unnamed Character" }
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         TopAppBar(
             title = { Text(text = name) },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         )
-        BondsSection(character)
+        BondsSection(character, onBondsClick)
         ProgressList(progress, modifier = Modifier.padding(bottom = 60.dp))
     }
 
@@ -62,22 +68,21 @@ fun ProgressView(character: Character, progress: List<ProgressTrack>, onAddProgr
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ProgressViewPreview() {
+    val character = Character("Joe", bonds = setOf(UUID.randomUUID(), UUID.randomUUID()))
     MouldTheme {
-        ProgressView(
-            Character("Joe", bonds = setOf(UUID.randomUUID(), UUID.randomUUID())),
-            listOf(),
-        ) {}
+        ProgressView(character, listOf(), {}, {})
     }
 }
 
 @Composable
-fun BondsSection(character: Character) {
+fun BondsSection(character: Character, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
             .padding(16.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable { onClick() },
     ) {
         Text("Bonds", style = MaterialTheme.typography.labelLarge)
         ProgressBar(filled = character.bondCount)
@@ -116,7 +121,10 @@ fun ProgressTrack(track: ProgressTrack) {
     }
 
     Column {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.align(Alignment.CenterHorizontally)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
             Text(track.name, style = MaterialTheme.typography.labelMedium)
             ChallengeIndicator(rank = track.challengeRank)
         }

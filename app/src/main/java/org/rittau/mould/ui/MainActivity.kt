@@ -97,9 +97,11 @@ fun Content(character: Character, progress: List<ProgressTrack>) {
                     }
                 }
                 composable(MouldScreen.Progress.name) {
-                    ProgressView(character, progressTracks) {
+                    ProgressView(character, progressTracks, {
+                        navController.navigate(MouldScreen.Notes.name)
+                    }, {
                         navController.navigate(MouldScreen.ProgressEditor.name)
-                    }
+                    })
                 }
                 composable(MouldScreen.ProgressEditor.name) {
                     ProgressEditorView({
