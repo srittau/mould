@@ -162,6 +162,9 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Save")
             }
         }, actions = {
+            Button(onClick = { onSave() }, enabled = changed) {
+                Text("Save")
+            }
             IconButton(onClick = { deleteDialog = true }) {
                 Icon(Icons.Filled.Delete, contentDescription = "Delete")
             }
@@ -197,9 +200,7 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
                     .height(300.dp)
                     .fillMaxWidth(),
             )
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()
-            ) {
+            Row(modifier = Modifier.fillMaxWidth()) {
                 if (bonded) {
                     OutlinedButton(onClick = { onClearBond() }) { Text("Clear bond") }
                 } else {
@@ -213,9 +214,6 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
                             Text("Forge bond")
                         }
                     }
-                }
-                Button(enabled = changed, onClick = { onSave() }) {
-                    Text("Save")
                 }
             }
         }
