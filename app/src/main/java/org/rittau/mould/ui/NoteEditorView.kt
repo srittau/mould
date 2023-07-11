@@ -47,6 +47,9 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
     var title by rememberSaveable {
         mutableStateOf(note.title)
     }
+    var summary by rememberSaveable {
+        mutableStateOf(note.summary)
+    }
     var text by rememberSaveable {
         mutableStateOf(note.text)
     }
@@ -151,12 +154,21 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
         ) {
             TextField(
                 title,
+                label = { Text("Title") },
                 singleLine = true,
                 onValueChange = { title = it; changed = true },
                 modifier = Modifier.fillMaxWidth(),
             )
             TextField(
+                summary,
+                label = { Text("Summary") },
+                singleLine = true,
+                onValueChange = { summary = it; changed = true },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            TextField(
                 text,
+                label = { Text("Text") },
                 minLines = 5,
                 onValueChange = { text = it; changed = true },
                 modifier = Modifier
@@ -173,6 +185,7 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
                 }
                 Button(enabled = changed, onClick = {
                     note.title = title
+                    note.summary = summary
                     note.text = text
                     runBlocking {
                         updateWorldNote(note)

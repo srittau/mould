@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -77,9 +76,10 @@ fun NoteItem(note: WorldNote, onClick: (WorldNote) -> Unit) {
         headlineContent = {
             Text(
                 if (note.title != "") note.title else "<untitled>",
-                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
             )
         },
+        supportingContent = { Text(note.summary, maxLines = 1) },
         modifier = Modifier.clickable { onClick.invoke(note) },
     )
 }
