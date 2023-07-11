@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -26,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
@@ -35,6 +37,7 @@ import org.rittau.mould.model.addProgress
 import org.rittau.mould.ui.theme.MouldTheme
 import org.rittau.mould.updateProgress
 import java.util.UUID
+import org.rittau.mould.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +87,10 @@ fun BondsSection(character: Character, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() },
     ) {
-        Text("Bonds", style = MaterialTheme.typography.labelLarge)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Bonds", style = MaterialTheme.typography.labelLarge)
+            Icon(painterResource(R.drawable.bond), "Bonds", modifier = Modifier.size(18.dp))
+        }
         ProgressBar(filled = character.bondCount)
     }
 
