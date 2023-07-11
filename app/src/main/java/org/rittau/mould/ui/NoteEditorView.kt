@@ -45,6 +45,7 @@ import org.rittau.mould.deleteWorldNote
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.model.WorldNoteType
+import org.rittau.mould.model.canForgeBond
 import org.rittau.mould.updateWorldNote
 import java.util.UUID
 
@@ -203,7 +204,7 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 if (bonded) {
                     OutlinedButton(onClick = { onClearBond() }) { Text("Clear bond") }
-                } else {
+                } else if (canForgeBond(character, note.uuid, type)) {
                     OutlinedButton(onClick = { onFormBond() }) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Icon(
