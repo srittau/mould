@@ -1,8 +1,6 @@
 package org.rittau.mould.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,9 +18,7 @@ import org.rittau.mould.model.WorldNote
 
 @Composable
 fun NotesList(character: Character, notes: List<WorldNote>, onClick: (WorldNote) -> Unit) {
-    LazyColumn(
-        contentPadding = PaddingValues(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
+    LazyColumn {
         items(notes, key = { note -> note.uuid }) { note ->
             NoteItem(character, note, onClick)
         }
