@@ -183,9 +183,14 @@ private data class DbCampaignNote(
     @PrimaryKey val uuid: UUID,
     @ColumnInfo(name = "campaign_uuid") val campaignUUID: UUID,
     @ColumnInfo val title: String,
+    @ColumnInfo(defaultValue = "") val date: String = "",
     @ColumnInfo val text: String,
     @ColumnInfo(defaultValue = "0") val order: Int,
 )
+
+private fun campaignNoteFromDb(db: DbCampaignNote): CampaignNote {
+    return CampaignNote(db.uuid, db.title, db.date, db.text)
+}
 
 @Dao
 private interface CampaignNoteDao {
@@ -195,8 +200,8 @@ private interface CampaignNoteDao {
     @Insert
     suspend fun insertNote(note: DbCampaignNote)
 
-    @Query("UPDATE campaign_notes SET title = :title, text = :text WHERE uuid = :uuid")
-    suspend fun updateNote(uuid: UUID, title: String, text: String)
+    @Query("UPDATE campaign_notes SET title = :title, date = :date, text = :text WHERE uuid = :uuid")
+    suspend fun updateNote(uuid: UUID, title: String, date: String, text: String)
 
     @Query("DELETE FROM campaign_notes WHERE uuid = :uuid")
     suspend fun deleteNote(uuid: UUID)
@@ -406,7 +411,7 @@ private interface ProgressDao {
         DbBond::class,
         DbProgress::class,
     ],
-    version = 9,
+    version = 10,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -416,6 +421,7 @@ private interface ProgressDao {
         AutoMigration(from = 6, to = 7, spec = MouldDatabase.DeleteBonds::class),
         AutoMigration(from = 7, to = 8),
         AutoMigration(from = 8, to = 9),
+        AutoMigration(from = 9, to = 10),
     ],
 )
 private abstract class MouldDatabase : RoomDatabase() {
@@ -501,19 +507,19 @@ suspend fun deleteWorldNote(note: WorldNote) {
 
 suspend fun loadCampaignNotes(): List<CampaignNote> {
     val notes = getDb().campaignNoteDao().selectNotesByCampaign(CAMPAIGN_UUID)
-    return notes.map { CampaignNote(it.uuid, it.title, it.text) }
+    return notes.map { campaignNoteFromDb(it) }
 }
 
-suspend fun createCampaignNote(title: String, text: String): CampaignNote {
+suspend fun createCampaignNote(title: String = "", date: String = "", text: String = ""): CampaignNote {
     val db = getDb()
     val order = (db.campaignNoteDao().selectMaxOrder(CAMPAIGN_UUID) ?: 0) + 1
-    val note = DbCampaignNote(UUID.randomUUID(), CAMPAIGN_UUID, title, text, order)
+    val note = DbCampaignNote(UUID.randomUUID(), CAMPAIGN_UUID, title, date, text, order)
     db.campaignNoteDao().insertNote(note)
-    return CampaignNote(note.uuid, note.title, note.text)
+    return campaignNoteFromDb(note)
 }
 
 suspend fun updateCampaignNote(note: CampaignNote) {
-    getDb().campaignNoteDao().updateNote(note.uuid, note.title, note.text)
+    getDb().campaignNoteDao().updateNote(note.uuid, note.title, note.date, note.text)
 }
 
 suspend fun deleteCampaignNote(note: CampaignNote) {

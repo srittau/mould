@@ -38,11 +38,24 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
     var title by rememberSaveable {
         mutableStateOf(note.title)
     }
+    var date by rememberSaveable {
+        mutableStateOf(note.date)
+    }
     var text by rememberSaveable {
         mutableStateOf(note.text)
     }
     var changed by rememberSaveable { mutableStateOf(false) }
     var deleteDialog by rememberSaveable { mutableStateOf(false) }
+
+    fun onSave() {
+        note.title = title
+        note.date = date
+        note.text = text
+        runBlocking {
+            updateCampaignNote(note)
+        }
+        changed = false
+    }
 
     fun onDelete() {
         runBlocking {
@@ -97,26 +110,28 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
         ) {
             TextField(
                 title,
+                label = { Text("Title") },
                 singleLine = true,
                 onValueChange = { title = it; changed = true },
                 modifier = Modifier.fillMaxWidth(),
             )
             TextField(
+                date,
+                label = { Text("Date") },
+                singleLine = true,
+                onValueChange = { date = it; changed = true },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            TextField(
                 text,
+                label = { Text("Text") },
                 minLines = 5,
                 onValueChange = { text = it; changed = true },
                 modifier = Modifier
                     .height(300.dp)
                     .fillMaxWidth(),
             )
-            Button(enabled = changed, onClick = {
-                note.title = title
-                note.text = text
-                runBlocking {
-                    updateCampaignNote(note)
-                }
-                changed = false
-            }) {
+            Button(enabled = changed, onClick = { onSave() }) {
                 Text("Save")
             }
         }
@@ -127,5 +142,9 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun JournalEditorViewPreview() {
-    JournalEditorView(CampaignNote(UUID.randomUUID(), "Title", "Text\nwith multiple\n\nlines")) {}
+    JournalEditorView(
+        CampaignNote(
+            UUID.randomUUID(), "Title", "Some date", "Text\nwith multiple\n\nlines"
+        )
+    ) {}
 }

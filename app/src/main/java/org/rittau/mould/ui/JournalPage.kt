@@ -36,13 +36,12 @@ fun JournalPage(onOpenJournal: (CampaignNote) -> Unit) {
 
     JournalList(notes, onOpenJournal)
     Box(modifier = Modifier.fillMaxSize()) {
-        FloatingActionButton(
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.BottomEnd),
+        FloatingActionButton(modifier = Modifier
+            .padding(16.dp)
+            .align(Alignment.BottomEnd),
             onClick = {
                 val note = runBlocking {
-                    createCampaignNote("", "")
+                    createCampaignNote()
                 }
                 notes.add(note)
                 onOpenJournal.invoke(note)
@@ -72,6 +71,9 @@ fun JournalList(notes: List<CampaignNote>, onClick: (CampaignNote) -> Unit) {
 @Composable
 fun JournalItem(note: CampaignNote, onClick: (CampaignNote) -> Unit) {
     ListItem(
+        overlineContent = {
+            if (note.date.isNotEmpty()) { Text(note.date) }
+        },
         headlineContent = {
             Text(
                 if (note.title != "") note.title else "<untitled>",
