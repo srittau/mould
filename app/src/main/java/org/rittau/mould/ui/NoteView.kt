@@ -28,6 +28,7 @@ import dev.jeziellago.compose.markdowntext.MarkdownText
 import org.rittau.mould.R
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.WorldNote
+import org.rittau.mould.model.WorldNoteType
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,8 +85,8 @@ fun NoteView(
 @Composable
 fun NoteViewPreview() {
     val noteUUID = UUID.randomUUID()
-    NoteView(Character("Joe", bonds = setOf(noteUUID)),
-        WorldNote(noteUUID, "Title", "Summary", "Text\nwith multiple\n\nlines"),
-        {},
-        {})
+    val note = WorldNote(
+        noteUUID, "Title", WorldNoteType.World, "Summary", "Text\nwith multiple\n\nlines"
+    )
+    NoteView(Character("Joe", bonds = setOf(noteUUID)), note, {}, {})
 }

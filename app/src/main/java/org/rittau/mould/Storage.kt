@@ -28,6 +28,7 @@ import org.rittau.mould.model.Character
 import org.rittau.mould.model.ProgressTrack
 import org.rittau.mould.model.ProgressCompletion
 import org.rittau.mould.model.WorldNote
+import org.rittau.mould.model.WorldNoteType
 import java.util.UUID
 
 private val CAMPAIGN_UUID = UUID.fromString("6506c0fa-d589-4b51-b454-13d1ec7002b4")
@@ -82,9 +83,32 @@ private data class DbWorldNote(
     @PrimaryKey val uuid: UUID,
     @ColumnInfo(name = "world_id") val worldID: String,
     @ColumnInfo val title: String,
-    @ColumnInfo val summary: String,
-    @ColumnInfo val text: String,
+    @ColumnInfo(defaultValue = "Other") val type: WorldNoteType = WorldNoteType.Other,
+    @ColumnInfo(defaultValue = "") val summary: String = "",
+    @ColumnInfo(defaultValue = "") val text: String = "",
 )
+
+
+private fun worldNoteToDb(note: WorldNote): DbWorldNote {
+    return DbWorldNote(
+        note.uuid,
+        WORLD_ID,
+        note.title,
+        note.type,
+        note.summary,
+        note.text,
+    )
+}
+
+private fun worldNoteFromDb(dbNote: DbWorldNote): WorldNote {
+    return WorldNote(
+        dbNote.uuid,
+        dbNote.title,
+        dbNote.type,
+        dbNote.summary,
+        dbNote.text,
+    )
+}
 
 @Dao
 private interface WorldNoteDao {
@@ -382,7 +406,7 @@ private interface ProgressDao {
         DbBond::class,
         DbProgress::class,
     ],
-    version = 8,
+    version = 9,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -391,6 +415,7 @@ private interface ProgressDao {
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 6, to = 7, spec = MouldDatabase.DeleteBonds::class),
         AutoMigration(from = 7, to = 8),
+        AutoMigration(from = 8, to = 9),
     ],
 )
 private abstract class MouldDatabase : RoomDatabase() {
@@ -451,26 +476,23 @@ suspend fun loadCharacter(): Character {
         return Character("")
     }
     val bonds = getDb().worldNoteDao().selectNotesByBond(CAMPAIGN_UUID)
-    System.out.println("Bonds: ${bonds.size}")
     return characterFromDb(characters[0], bonds)
 }
 
 
 suspend fun loadWorldNotes(): List<WorldNote> {
     val notes = getDb().worldNoteDao().selectNotesByWorld(WORLD_ID)
-    return notes.map { WorldNote(it.uuid, it.title, it.summary, it.text) }
+    return notes.map { worldNoteFromDb(it) }
 }
 
-suspend fun createWorldNote(title: String, summary: String, text: String): WorldNote {
-    val note = DbWorldNote(UUID.randomUUID(), WORLD_ID, title, summary, text)
+suspend fun createWorldNote(title: String, type: WorldNoteType, summary: String, text: String): WorldNote {
+    val note = DbWorldNote(UUID.randomUUID(), WORLD_ID, title, type, summary, text)
     getDb().worldNoteDao().insertNote(note)
-    return WorldNote(note.uuid, note.title, note.summary, note.text)
+    return worldNoteFromDb(note)
 }
 
 suspend fun updateWorldNote(note: WorldNote) {
-    getDb().worldNoteDao().updateNote(
-        DbWorldNote(note.uuid, WORLD_ID, note.title, note.summary, note.text)
-    )
+    getDb().worldNoteDao().updateNote(worldNoteToDb(note))
 }
 
 suspend fun deleteWorldNote(note: WorldNote) {

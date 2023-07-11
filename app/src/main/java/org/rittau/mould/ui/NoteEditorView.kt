@@ -37,6 +37,7 @@ import org.rittau.mould.deleteBond
 import org.rittau.mould.deleteWorldNote
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.WorldNote
+import org.rittau.mould.model.WorldNoteType
 import org.rittau.mould.updateWorldNote
 import java.util.UUID
 
@@ -194,6 +195,7 @@ fun NoteEditorViewPreview() {
         WorldNote(
             UUID.randomUUID(),
             "Title",
+            WorldNoteType.World,
             "Summary",
             "Text\nwith multiple\n\nlines"
         )

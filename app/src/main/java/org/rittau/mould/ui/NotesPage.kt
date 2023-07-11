@@ -25,6 +25,7 @@ import kotlinx.coroutines.runBlocking
 import org.rittau.mould.createWorldNote
 import org.rittau.mould.loadWorldNotes
 import org.rittau.mould.model.WorldNote
+import org.rittau.mould.model.WorldNoteType
 
 @Composable
 fun NotesPage(onOpenNote: (WorldNote, Boolean) -> Unit) {
@@ -35,14 +36,15 @@ fun NotesPage(onOpenNote: (WorldNote, Boolean) -> Unit) {
         l
     }
 
-    NotesList(notes)  { note -> onOpenNote(note, false) }
+    NotesList(notes) { note -> onOpenNote(note, false) }
     Box(modifier = Modifier.fillMaxSize()) {
-        FloatingActionButton(modifier = Modifier
-            .padding(16.dp)
-            .align(Alignment.BottomEnd),
+        FloatingActionButton(
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.BottomEnd),
             onClick = {
                 val note = runBlocking {
-                    createWorldNote("", "","")
+                    createWorldNote("", WorldNoteType.Other, "", "")
                 }
                 notes.add(note)
                 onOpenNote.invoke(note, true)
