@@ -12,11 +12,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import org.rittau.mould.model.CampaignNote
+import org.rittau.mould.model.Character
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.ui.theme.MouldTheme
 
 @Composable
-fun NotesView(onOpenNote: (WorldNote, Boolean) -> Unit, onOpenJournal: (CampaignNote) -> Unit) {
+fun NotesView(character: Character, onOpenNote: (WorldNote, Boolean) -> Unit, onOpenJournal: (CampaignNote) -> Unit) {
     var tab by rememberSaveable { mutableStateOf(0) }
 
     Column {
@@ -25,7 +26,7 @@ fun NotesView(onOpenNote: (WorldNote, Boolean) -> Unit, onOpenJournal: (Campaign
             Tab(selected = tab == 1, text = { Text(text = "Journal") }, onClick = { tab = 1 })
         }
         when (tab) {
-            0 -> NotesPage(onOpenNote)
+            0 -> NotesPage(character, onOpenNote)
             1 -> JournalPage(onOpenJournal)
         }
     }
@@ -35,7 +36,8 @@ fun NotesView(onOpenNote: (WorldNote, Boolean) -> Unit, onOpenJournal: (Campaign
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun NotesViewPreview() {
+    val character = Character("Joe")
     MouldTheme {
-        NotesView({ _, _ -> }, {})
+        NotesView(character, { _, _ -> }, {})
     }
 }

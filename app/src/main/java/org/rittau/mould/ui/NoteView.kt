@@ -80,7 +80,7 @@ fun NoteView(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painterResource(R.drawable.bond), null, modifier = Modifier.size(24.dp),
+                        painterResource(R.drawable.bond), "Bonded", modifier = Modifier.size(24.dp),
                     )
                     Text("Bonded", style = MaterialTheme.typography.titleLarge)
                 }

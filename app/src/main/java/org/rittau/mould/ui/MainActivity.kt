@@ -118,7 +118,7 @@ fun Content(character: Character, progress: List<ProgressTrack>) {
                     DiceView()
                 }
                 composable(MouldScreen.Notes.name) {
-                    NotesView({ note, openEditor ->
+                    NotesView(character, { note, openEditor ->
                         currentNote = note
                         val target = if (openEditor) MouldScreen.NoteEditor else MouldScreen.Note
                         navController.navigate(target.name)
