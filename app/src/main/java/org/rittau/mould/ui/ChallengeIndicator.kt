@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.rittau.mould.model.ChallengeRank
 
-val COLOR_TROUBLESOME = Color(0xFF666666)
+val COLOR_TROUBLESOME = Color(0xFF999999)
 val COLOR_DANGEROUS = Color(0xFF00CC00)
 val COLOR_FORMIDABLE = Color(0xFF0080FF)
 val COLOR_EXTREME = Color(0xFFFF66FF)
