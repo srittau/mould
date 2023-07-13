@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,32 +49,35 @@ fun DiceView() {
             actionD10two = (0..9).random()
             actionD6 = (1..6).random()
         }) {
-            D10(actionD10one)
-            D10(actionD10two)
-            D6(actionD6)
+            D10(actionD10one, diceSize = 75.dp, zeroAsTen = true)
+            D10(actionD10two, diceSize = 75.dp, zeroAsTen = true)
+            D6(actionD6, diceSize = 75.dp, outline = true)
         }
         DiceSection(title = "Progress Rolls", onRoll = {
             progressD10one = (0..9).random()
             progressD10two = (0..9).random()
         }) {
-            D10(progressD10one)
-            D10(progressD10two)
+            D10(progressD10one, diceSize = 75.dp, zeroAsTen = true)
+            D10(progressD10two, diceSize = 75.dp, zeroAsTen = true)
         }
         DiceSection(title = "Oracle Rolls", onRoll = {
             oracleD100 = (0..9).random()
             oracleD10 = (0..9).random()
         }) {
-            D100(oracleD100)
-            D10(oracleD10)
+            D100(oracleD100, diceSize = 75.dp)
+            D10(oracleD10, diceSize = 75.dp)
         }
     }
 }
 
 @Composable
 fun DiceSection(title: String, onRoll: () -> Unit = {}, content: @Composable () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Text(title, style = MaterialTheme.typography.labelLarge)
-        DiceGroup(onRoll) {
+        DiceGroup(onRoll = onRoll, modifier = Modifier) {
             content()
         }
     }

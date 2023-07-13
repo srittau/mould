@@ -8,10 +8,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun DiceGroup(onRoll: () -> Unit = {}, content: @Composable () -> Unit) {
+fun DiceGroup(
+    modifier: Modifier = Modifier,
+    onRoll: () -> Unit = {},
+    content: @Composable () -> Unit
+) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.clickable { onRoll() }
+        modifier = modifier.clickable { onRoll() }
     ) {
         content()
     }
