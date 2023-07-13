@@ -10,3 +10,14 @@ fun canForgeBond(character: Character, noteUUID: UUID, noteType: WorldNoteType):
     }
     return noteType in BONDABLE_TYPES
 }
+
+class BondsTrack(ticks: Int = 0) : Track("Bonds", ticks) {
+    fun forgeBond(): Int {
+        return markTick()
+    }
+
+    fun clearBond(): Int {
+        if (ticks > 0) ticks--
+        return ticks
+    }
+}

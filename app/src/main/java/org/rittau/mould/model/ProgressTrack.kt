@@ -3,27 +3,40 @@ package org.rittau.mould.model
 import java.io.Serializable
 import java.util.UUID
 
-const val MAX_PROGRESS = 40
-
 enum class ProgressCompletion {
     InProgress, Completed, Failed
 }
 
-data class ProgressTrack(
+class ProgressTrack(
     val uuid: UUID,
-    var name: String,
+    name: String,
     var challengeRank: ChallengeRank,
     var notes: String = "",
-    var progress: Int = 0,
+    ticks: Int = 0,
     var completion: ProgressCompletion = ProgressCompletion.InProgress,
-) : Serializable
-
-fun addProgress(progress: Int, rank: ChallengeRank) = minOf(
-    MAX_PROGRESS, when (rank) {
-        ChallengeRank.Troublesome -> progress + 12
-        ChallengeRank.Dangerous -> progress + 8
-        ChallengeRank.Formidable -> progress + 4
-        ChallengeRank.Extreme -> progress + 2
-        ChallengeRank.Epic -> progress + 1
+) : Track(name, ticks), Serializable {
+    fun markProgress(): Int {
+        ticks = minOf(
+            MAX_TICKS, when (challengeRank) {
+                ChallengeRank.Troublesome -> ticks + 12
+                ChallengeRank.Dangerous -> ticks + 8
+                ChallengeRank.Formidable -> ticks + 4
+                ChallengeRank.Extreme -> ticks + 2
+                ChallengeRank.Epic -> ticks + 1
+            }
+        )
+        return ticks
     }
-)
+
+    fun complete() {
+        completion = ProgressCompletion.Completed
+    }
+
+    fun fail() {
+        completion = ProgressCompletion.Failed
+    }
+
+    fun reopen() {
+        completion = ProgressCompletion.InProgress
+    }
+}

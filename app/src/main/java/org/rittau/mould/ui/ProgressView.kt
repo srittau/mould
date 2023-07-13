@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.ProgressTrack
-import org.rittau.mould.model.addProgress
 import org.rittau.mould.ui.theme.MouldTheme
 import org.rittau.mould.updateProgress
 import java.util.UUID
@@ -49,7 +48,7 @@ fun ProgressView(
             title = { Text(text = name) },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         )
-        BondsSection(character, onBondsClick)
+        BondsSection(character.bondsTrack, onBondsClick)
         ProgressList(progress, modifier = Modifier.padding(bottom = 60.dp))
     }
 
@@ -91,13 +90,13 @@ fun ProgressList(progress: List<ProgressTrack>, modifier: Modifier = Modifier) {
 
 @Composable
 fun ProgressTrack(track: ProgressTrack) {
-    val progress = rememberSaveable {
-        mutableStateOf(track.progress)
+    val progress =
+        rememberSaveable {
+        mutableStateOf(track.ticks)
     }
 
     fun onAdd() {
-        progress.value = addProgress(progress.value, track.challengeRank)
-        track.progress = progress.value
+        progress.value = track.markProgress()
         runBlocking {
             updateProgress(track)
         }

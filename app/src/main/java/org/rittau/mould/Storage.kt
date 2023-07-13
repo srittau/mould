@@ -369,7 +369,7 @@ private fun progressToDb(progress: ProgressTrack, campaignUUID: UUID): DbProgres
         progress.name,
         progress.challengeRank,
         progress.notes,
-        progress.progress,
+        progress.ticks,
         progress.completion,
     )
 }

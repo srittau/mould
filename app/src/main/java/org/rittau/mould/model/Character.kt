@@ -159,13 +159,14 @@ class Character(
 
     // Bonds
 
-    val bondCount: Int
-        get() = bonds.size
+    val bondsTrack = BondsTrack(this.bonds.size)
     fun forgeBond(uuid: UUID) {
         bonds += uuid
+        bondsTrack.forgeBond()
     }
     fun clearBond(uuid: UUID) {
         bonds -= uuid
+        bondsTrack.clearBond()
     }
     fun isBondedTo(uuid: UUID): Boolean = bonds.contains(uuid)
 }

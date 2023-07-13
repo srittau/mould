@@ -16,10 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import org.rittau.mould.R
-import org.rittau.mould.model.Character
+import org.rittau.mould.model.BondsTrack
 
 @Composable
-fun BondsSection(character: Character, onClick: () -> Unit) {
+fun BondsSection(track: BondsTrack, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -32,7 +32,6 @@ fun BondsSection(character: Character, onClick: () -> Unit) {
             Text("Bonds", style = MaterialTheme.typography.labelLarge)
             Icon(painterResource(R.drawable.bond), "Bonds", modifier = Modifier.size(18.dp))
         }
-        ProgressBar(filled = character.bondCount)
+        ProgressBar(filled = track.ticks)
     }
-
 }
