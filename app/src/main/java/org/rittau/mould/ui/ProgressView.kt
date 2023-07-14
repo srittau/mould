@@ -66,7 +66,7 @@ fun ProgressView(
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ProgressViewPreview() {
-    val character = Character("Joe", bonds = setOf(UUID.randomUUID(), UUID.randomUUID()))
+    val character = Character(UUID.randomUUID(), "Joe", bonds = setOf(UUID.randomUUID(), UUID.randomUUID()))
     MouldTheme {
         ProgressView(character, listOf(), {}, {})
     }

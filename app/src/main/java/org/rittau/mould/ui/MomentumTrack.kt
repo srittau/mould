@@ -26,6 +26,7 @@ import org.rittau.mould.model.Character
 import org.rittau.mould.model.MIN_MOMENTUM
 import org.rittau.mould.saveCharacterSync
 import org.rittau.mould.ui.theme.MouldTheme
+import java.util.UUID
 
 @Composable
 fun MomentumTrack(character: Character) {
@@ -137,7 +138,7 @@ fun MomentumTrack(character: Character) {
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MomentumTrackPreview() {
-    val character = Character("", momentum = 3)
+    val character = Character(UUID.randomUUID(), "", momentum = 3)
     MouldTheme {
         MomentumTrack(character)
     }

@@ -10,6 +10,7 @@ const val MIN_STATUS = 0
 const val MAX_STATUS = 5
 
 class Character(
+    val uuid: UUID,
     var name: String,
     var summary: String = "",
     var experience: Int = 0,

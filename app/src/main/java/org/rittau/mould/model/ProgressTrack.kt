@@ -8,6 +8,7 @@ enum class ProgressCompletion {
 }
 
 class ProgressTrack(
+    val campaignUUID: UUID,
     val uuid: UUID,
     name: String,
     var challengeRank: ChallengeRank,

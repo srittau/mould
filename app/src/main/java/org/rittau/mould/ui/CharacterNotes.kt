@@ -25,6 +25,7 @@ import dev.jeziellago.compose.markdowntext.MarkdownText
 import org.rittau.mould.model.Character
 import org.rittau.mould.saveCharacterSync
 import org.rittau.mould.ui.theme.MouldTheme
+import java.util.UUID
 
 @Composable
 fun CharacterNotes(character: Character) {
@@ -43,8 +44,7 @@ fun CharacterNotes(character: Character) {
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
+            horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()
         ) {
             Text(
                 "Notes and Inventory",
@@ -57,7 +57,11 @@ fun CharacterNotes(character: Character) {
                 }
             } else {
                 IconButton(onClick = { editing = true }) {
-                    Icon(Icons.Filled.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurface)
+                    Icon(
+                        Icons.Filled.Edit,
+                        contentDescription = "Edit",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         }
@@ -82,6 +86,7 @@ fun CharacterNotesPreview() {
     MouldTheme {
         CharacterNotes(
             Character(
+                UUID.randomUUID(),
                 "John",
                 notes = "This is multiline text.\n\nWith *markdown*.\n\nAnd **formatting**.\n\nAnd [links](https://example.com)."
             )

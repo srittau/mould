@@ -28,6 +28,7 @@ import org.rittau.mould.model.MAX_STATUS
 import org.rittau.mould.model.MIN_STATUS
 import org.rittau.mould.saveCharacterSync
 import org.rittau.mould.ui.theme.MouldTheme
+import java.util.UUID
 
 @Composable
 fun ConditionTrack(
@@ -78,7 +79,7 @@ fun ConditionTrack(
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ConditionTrackPreview() {
-    val character = Character("", health = 3)
+    val character = Character(UUID.randomUUID(), "", health = 3)
     MouldTheme {
         ConditionTrack({ HealthIcon(modifier = it) }, character, character.healthTrack)
     }

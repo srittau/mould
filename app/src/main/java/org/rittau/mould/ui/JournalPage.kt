@@ -17,12 +17,14 @@ import kotlinx.coroutines.runBlocking
 import org.rittau.mould.createCampaignNote
 import org.rittau.mould.loadCampaignNotes
 import org.rittau.mould.model.CampaignNote
+import org.rittau.mould.model.Character
+import java.util.UUID
 
 @Composable
-fun JournalPage(onOpenJournal: (CampaignNote) -> Unit) {
+fun JournalPage(character: Character, onOpenJournal: (CampaignNote) -> Unit) {
     val notes = remember {
         val l = mutableStateListOf<CampaignNote>()
-        l.addAll(prepareNotes())
+        l.addAll(prepareNotes(character.uuid))
         l
     }
 
@@ -33,7 +35,7 @@ fun JournalPage(onOpenJournal: (CampaignNote) -> Unit) {
             .align(Alignment.BottomEnd),
             onClick = {
                 val note = runBlocking {
-                    createCampaignNote()
+                    createCampaignNote(character.uuid)
                 }
                 notes.add(note)
                 onOpenJournal.invoke(note)
@@ -43,8 +45,8 @@ fun JournalPage(onOpenJournal: (CampaignNote) -> Unit) {
     }
 }
 
-private fun prepareNotes(): MutableList<CampaignNote> {
+private fun prepareNotes(campaignUUID: UUID): MutableList<CampaignNote> {
     return runBlocking {
-        loadCampaignNotes()
+        loadCampaignNotes(campaignUUID)
     }.toMutableList()
 }

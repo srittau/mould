@@ -15,6 +15,7 @@ import org.rittau.mould.model.CampaignNote
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.ui.theme.MouldTheme
+import java.util.UUID
 
 @Composable
 fun NotesView(character: Character, onOpenNote: (WorldNote, Boolean) -> Unit, onOpenJournal: (CampaignNote) -> Unit) {
@@ -27,7 +28,7 @@ fun NotesView(character: Character, onOpenNote: (WorldNote, Boolean) -> Unit, on
         }
         when (tab) {
             0 -> NotesPage(character, onOpenNote)
-            1 -> JournalPage(onOpenJournal)
+            1 -> JournalPage(character, onOpenJournal)
         }
     }
 }
@@ -36,7 +37,7 @@ fun NotesView(character: Character, onOpenNote: (WorldNote, Boolean) -> Unit, on
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun NotesViewPreview() {
-    val character = Character("Joe")
+    val character = Character(UUID.randomUUID(), "Joe")
     MouldTheme {
         NotesView(character, { _, _ -> }, {})
     }

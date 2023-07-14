@@ -37,6 +37,9 @@ import org.rittau.mould.model.Character
 import org.rittau.mould.model.ProgressTrack
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.ui.theme.MouldTheme
+import java.util.UUID
+
+private val CAMPAIGN_UUID = UUID.fromString("6506c0fa-d589-4b51-b454-13d1ec7002b4")
 
 enum class MouldScreen {
     Character, CharacterEditor, Progress, ProgressEditor, Dice, Notes, Note, NoteEditor, JournalEditor
@@ -47,10 +50,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val character = runBlocking {
-            initializeDatabase(applicationContext)
-            loadCharacter()
+            initializeDatabase(applicationContext, CAMPAIGN_UUID)
+            loadCharacter(CAMPAIGN_UUID)
         }
-        val progress = runBlocking { loadProgress() }
+        val progress = runBlocking { loadProgress(CAMPAIGN_UUID) }
 
         setContent {
             Content(character, progress)
@@ -104,7 +107,7 @@ fun Content(character: Character, progress: List<ProgressTrack>) {
                     })
                 }
                 composable(MouldScreen.ProgressEditor.name) {
-                    ProgressEditorView({
+                    ProgressEditorView(character, {
                         progressTracks.add(it)
                         navController.popBackStack()
                     }) {

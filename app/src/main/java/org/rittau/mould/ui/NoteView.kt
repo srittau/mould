@@ -106,5 +106,5 @@ fun NoteViewPreview() {
     val note = WorldNote(
         noteUUID, "Title", WorldNoteType.World, "Summary", "Text\nwith multiple\n\nlines"
     )
-    NoteView(Character("Joe", bonds = setOf(noteUUID)), note, {}, {})
+    NoteView(Character(UUID.randomUUID(), "Joe", bonds = setOf(noteUUID)), note, {}, {})
 }

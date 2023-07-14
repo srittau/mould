@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.rittau.mould.model.Character
 import org.rittau.mould.ui.theme.MouldTheme
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,6 +68,6 @@ fun CharacterSheet(character: Character, onEdit: () -> Unit) {
 @Composable
 fun CharacterSheetPreview() {
     MouldTheme {
-        CharacterSheet(Character("John")) {}
+        CharacterSheet(Character(UUID.randomUUID(), "John")) {}
     }
 }

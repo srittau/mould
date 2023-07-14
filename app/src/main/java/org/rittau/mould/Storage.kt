@@ -31,7 +31,6 @@ import org.rittau.mould.model.WorldNote
 import org.rittau.mould.model.WorldNoteType
 import java.util.UUID
 
-private val CAMPAIGN_UUID = UUID.fromString("6506c0fa-d589-4b51-b454-13d1ec7002b4")
 private const val WORLD_ID = "default"
 
 @Entity(tableName = "scenarios")
@@ -287,9 +286,9 @@ private interface CharacterDao {
     suspend fun upsertCharacter(character: DbCharacter)
 }
 
-private fun characterToDb(character: Character, campaignUUID: UUID): DbCharacter {
+private fun characterToDb(character: Character): DbCharacter {
     return DbCharacter(
-        campaignUUID,
+        campaignUUID = character.uuid,
         name = character.name,
         summary = character.summary,
         experience = character.experience,
@@ -317,6 +316,7 @@ private fun characterToDb(character: Character, campaignUUID: UUID): DbCharacter
 
 private fun characterFromDb(dbCharacter: DbCharacter, bonds: List<DbWorldNote>): Character {
     return Character(
+        uuid = dbCharacter.campaignUUID,
         name = dbCharacter.name,
         summary = dbCharacter.summary,
         experience = dbCharacter.experience,
@@ -362,10 +362,10 @@ private data class DbProgress(
     @ColumnInfo val completion: ProgressCompletion = ProgressCompletion.InProgress,
 )
 
-private fun progressToDb(progress: ProgressTrack, campaignUUID: UUID): DbProgress {
+private fun progressToDb(progress: ProgressTrack): DbProgress {
     return DbProgress(
-        progress.uuid,
-        campaignUUID,
+        uuid = progress.uuid,
+        campaignUUID = progress.campaignUUID,
         progress.name,
         progress.challengeRank,
         progress.notes,
@@ -376,7 +376,8 @@ private fun progressToDb(progress: ProgressTrack, campaignUUID: UUID): DbProgres
 
 private fun progressFromDb(dbProgress: DbProgress): ProgressTrack {
     return ProgressTrack(
-        dbProgress.uuid,
+        campaignUUID = dbProgress.campaignUUID,
+        uuid = dbProgress.uuid,
         dbProgress.name,
         dbProgress.challengeRank,
         dbProgress.notes,
@@ -449,7 +450,7 @@ private fun getDb(): MouldDatabase {
     return checkNotNull(db) { "Database not initialized" }
 }
 
-suspend fun initializeDatabase(applicationContext: android.content.Context) {
+suspend fun initializeDatabase(applicationContext: android.content.Context, campaignUUID: UUID) {
     db = Room.databaseBuilder(applicationContext, MouldDatabase::class.java, "mould").build()
     with(getDb()) {
         if (!scenarioDao().hasScenario("default")) {
@@ -460,14 +461,14 @@ suspend fun initializeDatabase(applicationContext: android.content.Context) {
         }
         campaignDao().upsertCampaign(
             DbCampaign(
-                CAMPAIGN_UUID, "default", WORLD_ID, "Default Campaign"
+                campaignUUID, "default", WORLD_ID, "Default Campaign"
             )
         )
     }
 }
 
 suspend fun saveCharacter(character: Character) {
-    getDb().characterDao().upsertCharacter(characterToDb(character, CAMPAIGN_UUID))
+    getDb().characterDao().upsertCharacter(characterToDb(character))
 }
 
 fun saveCharacterSync(character: Character) {
@@ -476,12 +477,12 @@ fun saveCharacterSync(character: Character) {
     }
 }
 
-suspend fun loadCharacter(): Character {
-    val characters = getDb().characterDao().selectCharacter(CAMPAIGN_UUID)
+suspend fun loadCharacter(uuid: UUID): Character {
+    val characters = getDb().characterDao().selectCharacter(uuid)
     if (characters.isEmpty()) {
-        return Character("")
+        return Character(uuid, "")
     }
-    val bonds = getDb().worldNoteDao().selectNotesByBond(CAMPAIGN_UUID)
+    val bonds = getDb().worldNoteDao().selectNotesByBond(uuid)
     return characterFromDb(characters[0], bonds)
 }
 
@@ -505,15 +506,15 @@ suspend fun deleteWorldNote(note: WorldNote) {
     getDb().worldNoteDao().deleteNote(note.uuid)
 }
 
-suspend fun loadCampaignNotes(): List<CampaignNote> {
-    val notes = getDb().campaignNoteDao().selectNotesByCampaign(CAMPAIGN_UUID)
+suspend fun loadCampaignNotes(campaignUUID: UUID): List<CampaignNote> {
+    val notes = getDb().campaignNoteDao().selectNotesByCampaign(campaignUUID)
     return notes.map { campaignNoteFromDb(it) }
 }
 
-suspend fun createCampaignNote(title: String = "", date: String = "", text: String = ""): CampaignNote {
+suspend fun createCampaignNote(campaignUUID: UUID, title: String = "", date: String = "", text: String = ""): CampaignNote {
     val db = getDb()
-    val order = (db.campaignNoteDao().selectMaxOrder(CAMPAIGN_UUID) ?: 0) + 1
-    val note = DbCampaignNote(UUID.randomUUID(), CAMPAIGN_UUID, title, date, text, order)
+    val order = (db.campaignNoteDao().selectMaxOrder(campaignUUID) ?: 0) + 1
+    val note = DbCampaignNote(UUID.randomUUID(), campaignUUID, title, date, text, order)
     db.campaignNoteDao().insertNote(note)
     return campaignNoteFromDb(note)
 }
@@ -526,23 +527,23 @@ suspend fun deleteCampaignNote(note: CampaignNote) {
     getDb().campaignNoteDao().deleteNote(note.uuid)
 }
 
-suspend fun createBond(worldNoteUUID: UUID) {
-    getDb().bondDao().insertBond(DbBond(CAMPAIGN_UUID, worldNoteUUID))
+suspend fun createBond(characterUUID: UUID, worldNoteUUID: UUID) {
+    getDb().bondDao().insertBond(DbBond(characterUUID, worldNoteUUID))
 }
 
-suspend fun deleteBond(worldNoteUUID: UUID) {
-    getDb().bondDao().deleteBond(CAMPAIGN_UUID, worldNoteUUID)
+suspend fun deleteBond(characterUUID: UUID, worldNoteUUID: UUID) {
+    getDb().bondDao().deleteBond(characterUUID, worldNoteUUID)
 }
 
-suspend fun loadProgress(): List<ProgressTrack> {
-    val progress = getDb().progressDao().selectProgress(CAMPAIGN_UUID)
+suspend fun loadProgress(campaignUUID: UUID): List<ProgressTrack> {
+    val progress = getDb().progressDao().selectProgress(campaignUUID)
     return progress.map { progressFromDb(it) }
 }
 
-suspend fun createProgress(name: String, challengeRank: ChallengeRank, notes: String): ProgressTrack {
+suspend fun createProgress(campaignUUID: UUID, name: String, challengeRank: ChallengeRank, notes: String): ProgressTrack {
     val dbProgress = DbProgress(
         UUID.randomUUID(),
-        CAMPAIGN_UUID,
+        campaignUUID,
         name,
         challengeRank,
         notes,
@@ -554,7 +555,7 @@ suspend fun createProgress(name: String, challengeRank: ChallengeRank, notes: St
 }
 
 suspend fun updateProgress(progress: ProgressTrack) {
-    getDb().progressDao().updateProgress(progressToDb(progress, CAMPAIGN_UUID))
+    getDb().progressDao().updateProgress(progressToDb(progress))
 }
 
 suspend fun deleteProgress(uuid: UUID) {

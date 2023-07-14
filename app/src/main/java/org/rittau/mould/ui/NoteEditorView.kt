@@ -82,7 +82,7 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
 
     fun onFormBond() {
         CoroutineScope(Dispatchers.IO).launch {
-            createBond(note.uuid)
+            createBond(character.uuid, note.uuid)
         }
         character.forgeBond(note.uuid)
         bonded = true
@@ -90,7 +90,7 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
 
     fun onClearBond() {
         CoroutineScope(Dispatchers.IO).launch {
-            deleteBond(note.uuid)
+            deleteBond(character.uuid, note.uuid)
         }
         character.clearBond(note.uuid)
         bonded = false
@@ -259,7 +259,7 @@ fun NoteTypeSelect(value: WorldNoteType, onChange: (WorldNoteType) -> Unit) {
 @Composable
 fun NoteEditorViewPreview() {
     NoteEditorView(
-        Character("Joe"), WorldNote(
+        Character(UUID.randomUUID(), "Joe"), WorldNote(
             UUID.randomUUID(),
             "Title",
             WorldNoteType.World,

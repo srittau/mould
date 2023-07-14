@@ -24,11 +24,12 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
 import org.rittau.mould.createProgress
 import org.rittau.mould.model.ChallengeRank
+import org.rittau.mould.model.Character
 import org.rittau.mould.model.ProgressTrack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProgressEditorView(onSave: (track: ProgressTrack) -> Unit, onClose: () -> Unit) {
+fun ProgressEditorView(character: Character, onSave: (track: ProgressTrack) -> Unit, onClose: () -> Unit) {
     var closeDialog by rememberSaveable { mutableStateOf(false) }
 
     var name by rememberSaveable {
@@ -43,7 +44,7 @@ fun ProgressEditorView(onSave: (track: ProgressTrack) -> Unit, onClose: () -> Un
 
     fun onSaveClick() {
         val track = runBlocking {
-            createProgress(name, challengeRank, notes)
+            createProgress(character.uuid, name, challengeRank, notes)
         }
         onSave(track)
     }
