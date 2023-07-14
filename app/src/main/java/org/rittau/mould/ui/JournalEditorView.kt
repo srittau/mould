@@ -46,7 +46,16 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
         mutableStateOf(TextFieldValue(note.text))
     }
     var changed by rememberSaveable { mutableStateOf(false) }
+    var closeDialog by rememberSaveable { mutableStateOf(false) }
     var deleteDialog by rememberSaveable { mutableStateOf(false) }
+
+    fun onCloseClick() {
+        if (changed) {
+            closeDialog = true
+        } else {
+            onClose()
+        }
+    }
 
     fun onSave() {
         note.title = title
@@ -63,6 +72,26 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
             deleteCampaignNote(note)
         }
         onClose()
+    }
+
+    if (closeDialog) {
+        AlertDialog(
+            onDismissRequest = { closeDialog = false },
+            confirmButton = {
+                Button(onClick = {
+                    closeDialog = false
+                    onClose()
+                }) {
+                    Text("Close")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { closeDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+            text = { Text("Close without saving?") },
+        )
     }
 
     if (deleteDialog) {
@@ -94,7 +123,7 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
                 overflow = TextOverflow.Ellipsis
             )
         }, navigationIcon = {
-            IconButton(onClick = onClose) {
+            IconButton(onClick = { onCloseClick() }) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Save")
             }
         }, actions = {
