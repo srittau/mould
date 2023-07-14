@@ -126,7 +126,7 @@ fun Content() {
                     }
                 }
                 composable(MouldScreen.Dice.name) {
-                    DiceView()
+                    DiceView(character)
                 }
                 composable(MouldScreen.Notes.name) {
                     NotesView(character, { note, openEditor ->

@@ -35,6 +35,18 @@ class Character(
     var tormented: Boolean = false,
     var notes: String = "",
 ) : Serializable {
+    fun statOrTrackValue(stat: StatOrTrack): Int =
+        when (stat) {
+            StatOrTrack.Edge -> edge
+            StatOrTrack.Heart -> heart
+            StatOrTrack.Iron -> iron
+            StatOrTrack.Shadow -> shadow
+            StatOrTrack.Wits -> wits
+            StatOrTrack.Health -> health
+            StatOrTrack.Spirit -> spirit
+            StatOrTrack.Supply -> supply
+        }
+
     //
     // Experience
     //
@@ -173,6 +185,10 @@ class Character(
 }
 
 val NULL_CHARACTER = Character(UUID.fromString("00000000-0000-0000-0000-000000000000"), "")
+
+enum class StatOrTrack {
+    Edge, Heart, Iron, Shadow, Wits, Health, Spirit, Supply
+}
 
 interface ConditionTrack {
     val canGain: Boolean
