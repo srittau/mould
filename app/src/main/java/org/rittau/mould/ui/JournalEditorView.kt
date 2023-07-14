@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,8 +42,8 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
     var date by rememberSaveable {
         mutableStateOf(note.date)
     }
-    var text by rememberSaveable {
-        mutableStateOf(note.text)
+    var textValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(note.text))
     }
     var changed by rememberSaveable { mutableStateOf(false) }
     var deleteDialog by rememberSaveable { mutableStateOf(false) }
@@ -50,7 +51,7 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
     fun onSave() {
         note.title = title
         note.date = date
-        note.text = text
+        note.text = textValue.text
         runBlocking {
             updateCampaignNote(note)
         }
@@ -126,10 +127,10 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
             )
             TextField(
-                text,
+                textValue,
                 label = { Text("Text") },
                 minLines = 5,
-                onValueChange = { text = it; changed = true },
+                onValueChange = { textValue = it; changed = true },
                 modifier = Modifier
                     .height(300.dp)
                     .fillMaxWidth(),
