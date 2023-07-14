@@ -22,6 +22,7 @@ import androidx.room.migration.AutoMigrationSpec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.rittau.mould.model.Campaign
 import org.rittau.mould.model.CampaignNote
 import org.rittau.mould.model.ChallengeRank
 import org.rittau.mould.model.Character
@@ -157,10 +158,35 @@ private data class DbCampaign(
     @ColumnInfo val name: String,
 )
 
+private fun campaignToDb(campaign: Campaign): DbCampaign {
+    return DbCampaign(
+        campaign.uuid,
+        "default",
+        WORLD_ID,
+        campaign.name,
+    )
+}
+
+private fun campaignFromDb(db: DbCampaign): Campaign {
+    return Campaign(
+        db.uuid,
+        db.name,
+    )
+}
+
 @Dao
 private interface CampaignDao {
-    @Upsert
-    suspend fun upsertCampaign(campaign: DbCampaign)
+    @Query("SELECT * FROM campaigns")
+    suspend fun selectAllCampaigns(): List<DbCampaign>
+
+    @Insert
+    suspend fun insertCampaign(campaign: DbCampaign)
+
+    @Update
+    suspend fun updateCampaign(campaign: DbCampaign)
+
+    @Query("DELETE FROM campaigns WHERE uuid = :uuid")
+    suspend fun deleteCampaign(uuid: UUID)
 }
 
 @Entity(
@@ -453,7 +479,7 @@ private fun getDb(): MouldDatabase {
     return checkNotNull(db) { "Database not initialized" }
 }
 
-suspend fun initializeDatabase(applicationContext: android.content.Context, campaignUUID: UUID) {
+suspend fun initializeDatabase(applicationContext: android.content.Context) {
     db = Room.databaseBuilder(applicationContext, MouldDatabase::class.java, "mould").build()
     with(getDb()) {
         if (!scenarioDao().hasScenario("default")) {
@@ -462,11 +488,31 @@ suspend fun initializeDatabase(applicationContext: android.content.Context, camp
         if (!worldDao().hasWorld(WORLD_ID)) {
             worldDao().insertWorld(DbWorld(WORLD_ID, "Default World"))
         }
-        campaignDao().upsertCampaign(
-            DbCampaign(
-                campaignUUID, "default", WORLD_ID, "Default Campaign"
-            )
-        )
+    }
+}
+
+suspend fun loadAllCampaigns(): List<Campaign> {
+    val campaigns = getDb().campaignDao().selectAllCampaigns()
+    return campaigns.map { campaignFromDb(it) }
+}
+
+suspend fun createCampaign(): Campaign {
+    with(getDb()) {
+        val dbCampaign = DbCampaign(UUID.randomUUID(), "default", WORLD_ID, "")
+        campaignDao().insertCampaign(dbCampaign)
+        return campaignFromDb(dbCampaign)
+    }
+}
+
+suspend fun updateCampaign(campaign: Campaign) {
+    with(getDb()) {
+        campaignDao().updateCampaign(campaignToDb(campaign))
+    }
+}
+
+suspend fun deleteCampaign(uuid: UUID) {
+    with(getDb()) {
+        campaignDao().deleteCampaign(uuid)
     }
 }
 
@@ -496,10 +542,7 @@ suspend fun loadWorldNotes(): List<WorldNote> {
 }
 
 suspend fun createWorldNote(
-    title: String,
-    type: WorldNoteType,
-    summary: String,
-    text: String
+    title: String, type: WorldNoteType, summary: String, text: String
 ): WorldNote {
     val note = DbWorldNote(UUID.randomUUID(), WORLD_ID, title, type, summary, text)
     getDb().worldNoteDao().insertNote(note)
@@ -520,10 +563,7 @@ suspend fun loadCampaignNotes(campaignUUID: UUID): List<CampaignNote> {
 }
 
 suspend fun createCampaignNote(
-    campaignUUID: UUID,
-    title: String = "",
-    date: String = "",
-    text: String = ""
+    campaignUUID: UUID, title: String = "", date: String = "", text: String = ""
 ): CampaignNote {
     val db = getDb()
     val order = (db.campaignNoteDao().selectMaxOrder(campaignUUID) ?: 0) + 1
@@ -554,10 +594,7 @@ suspend fun loadProgress(campaignUUID: UUID): List<ProgressTrack> {
 }
 
 suspend fun createProgress(
-    campaignUUID: UUID,
-    name: String,
-    challengeRank: ChallengeRank,
-    notes: String
+    campaignUUID: UUID, name: String, challengeRank: ChallengeRank, notes: String
 ): ProgressTrack {
     val dbProgress = DbProgress(
         UUID.randomUUID(),

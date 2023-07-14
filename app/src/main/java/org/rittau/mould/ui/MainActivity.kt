@@ -30,43 +30,37 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.runBlocking
 import org.rittau.mould.initializeDatabase
-import org.rittau.mould.loadCharacter
-import org.rittau.mould.loadProgress
 import org.rittau.mould.model.CampaignNote
-import org.rittau.mould.model.Character
+import org.rittau.mould.model.NULL_CHARACTER
 import org.rittau.mould.model.ProgressTrack
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.ui.theme.MouldTheme
-import java.util.UUID
-
-private val CAMPAIGN_UUID = UUID.fromString("6506c0fa-d589-4b51-b454-13d1ec7002b4")
 
 enum class MouldScreen {
-    Character, CharacterEditor, Progress, ProgressEditor, Dice, Notes, Note, NoteEditor, JournalEditor
+    CampaignList, Character, CharacterEditor, Progress, ProgressEditor, Dice, Notes, Note, NoteEditor, JournalEditor,
 }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val character = runBlocking {
-            initializeDatabase(applicationContext, CAMPAIGN_UUID)
-            loadCharacter(CAMPAIGN_UUID)
+        runBlocking {
+            initializeDatabase(applicationContext)
         }
-        val progress = runBlocking { loadProgress(CAMPAIGN_UUID) }
 
         setContent {
-            Content(character, progress)
+            Content()
         }
     }
 }
 
 @Composable
-fun Content(character: Character, progress: List<ProgressTrack>) {
+fun Content() {
+    var character by rememberSaveable {
+        mutableStateOf(NULL_CHARACTER)
+    }
     val progressTracks = rememberSaveable {
-        val l = mutableListOf<ProgressTrack>()
-        l.addAll(progress)
-        l
+        mutableListOf<ProgressTrack>()
     }
     val navController: NavHostController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -81,19 +75,31 @@ fun Content(character: Character, progress: List<ProgressTrack>) {
 
     MouldTheme {
         Scaffold(bottomBar = {
-            NavBar(currentScreen) {
-                navController.navigate(it.name) {
-                    launchSingleTop = true
-                    restoreState = true
-                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            if (currentScreen != MouldScreen.CampaignList) {
+                NavBar(currentScreen) {
+                    navController.navigate(it.name) {
+                        launchSingleTop = true
+                        restoreState = true
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                    }
                 }
             }
         }) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = MouldScreen.Character.name,
+                startDestination = MouldScreen.CampaignList.name,
                 modifier = Modifier.padding(innerPadding),
             ) {
+                composable(MouldScreen.CampaignList.name) {
+                    CampaignListView(onCampaignSelected = {
+                        character = it.character
+                        with(progressTracks) {
+                            clear()
+                            addAll(it.progress)
+                        }
+                        navController.navigate(MouldScreen.Character.name)
+                    })
+                }
                 composable(MouldScreen.Character.name) {
                     CharacterSheet(character) {
                         navController.navigate(MouldScreen.CharacterEditor.name)

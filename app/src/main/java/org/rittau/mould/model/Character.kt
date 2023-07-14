@@ -172,6 +172,8 @@ class Character(
     fun isBondedTo(uuid: UUID): Boolean = bonds.contains(uuid)
 }
 
+val NULL_CHARACTER = Character(UUID.fromString("00000000-0000-0000-0000-000000000000"), "")
+
 interface ConditionTrack {
     val canGain: Boolean
     val canLose: Boolean
