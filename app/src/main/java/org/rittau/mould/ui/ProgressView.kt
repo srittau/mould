@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -17,6 +16,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -43,21 +43,24 @@ fun ProgressView(
     onAddProgress: () -> Unit,
 ) {
     val name = character.name.ifBlank { "Unnamed Character" }
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        TopAppBar(
-            title = { Text(text = name) },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        )
-        BondsSection(character.bondsTrack, onBondsClick)
-        ProgressList(progress, modifier = Modifier.padding(bottom = 60.dp))
-    }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        FloatingActionButton(modifier = Modifier
-            .padding(16.dp)
-            .align(Alignment.BottomEnd),
-            onClick = { onAddProgress() }) {
-            Icon(Icons.Filled.Add, "Add progress track")
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = name) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { onAddProgress() }) {
+                Icon(Icons.Filled.Add, "Add progress track")
+            }
+        }) { contentPadding ->
+        Column(modifier = Modifier
+            .padding(contentPadding)
+            .verticalScroll(rememberScrollState())) {
+            BondsSection(character.bondsTrack, onBondsClick)
+            ProgressList(progress, modifier = Modifier.padding(bottom = 60.dp))
         }
     }
 }
@@ -66,7 +69,8 @@ fun ProgressView(
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ProgressViewPreview() {
-    val character = Character(UUID.randomUUID(), "Joe", bonds = setOf(UUID.randomUUID(), UUID.randomUUID()))
+    val character =
+        Character(UUID.randomUUID(), "Joe", bonds = setOf(UUID.randomUUID(), UUID.randomUUID()))
     MouldTheme {
         ProgressView(character, listOf(), {}, {})
     }
@@ -92,8 +96,8 @@ fun ProgressList(progress: List<ProgressTrack>, modifier: Modifier = Modifier) {
 fun ProgressTrack(track: ProgressTrack) {
     val progress =
         rememberSaveable {
-        mutableStateOf(track.ticks)
-    }
+            mutableStateOf(track.ticks)
+        }
 
     fun onAdd() {
         progress.value = track.markProgress()

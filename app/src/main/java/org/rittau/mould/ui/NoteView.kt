@@ -2,13 +2,13 @@ package org.rittau.mould.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -17,6 +17,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -41,28 +42,36 @@ import java.util.UUID
 fun NoteView(
     character: Character, note: WorldNote, onEdit: (note: WorldNote) -> Unit, onClose: () -> Unit
 ) {
-    Column {
-        TopAppBar(
-            title = {
-                Text(
-                    if (note.title != "") note.title else "Untitled note",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = onClose) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        )
-
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        if (note.title != "") note.title else "Untitled note",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onClose) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { onEdit(note) }) {
+                Icon(Icons.Filled.Edit, contentDescription = "Edit")
+            }
+        },
+    ) { contentPadding ->
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
+                .padding(contentPadding)
+                .padding(8.dp)
+                .verticalScroll(rememberScrollState()),
         ) {
             if (note.summary.isNotEmpty()) {
                 Text(
@@ -82,18 +91,14 @@ fun NoteView(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painterResource(R.drawable.bond), "Bonded", modifier = Modifier.size(18.dp),
+                        painterResource(R.drawable.bond),
+                        "Bonded",
+                        modifier = Modifier.size(18.dp),
                     )
                     Text("Bonded", style = MaterialTheme.typography.titleMedium)
                 }
             }
             MarkdownText(note.text, style = MaterialTheme.typography.bodyLarge)
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
-        FloatingActionButton(onClick = { onEdit(note) }, modifier = Modifier.padding(16.dp)) {
-            Icon(Icons.Filled.Edit, contentDescription = "Edit")
         }
     }
 }
