@@ -25,8 +25,8 @@ import kotlinx.coroutines.launch
 import org.rittau.mould.model.CampaignNote
 import org.rittau.mould.model.ChallengeRank
 import org.rittau.mould.model.Character
-import org.rittau.mould.model.ProgressTrack
 import org.rittau.mould.model.ProgressCompletion
+import org.rittau.mould.model.ProgressTrack
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.model.WorldNoteType
 import java.util.UUID
@@ -114,7 +114,7 @@ private interface WorldNoteDao {
     @Query("SELECT * FROM world_notes WHERE world_id = :worldID")
     suspend fun selectNotesByWorld(worldID: String): List<DbWorldNote>
 
-    @Query("SELECT * FROM world_notes JOIN bonds ON world_notes.uuid = bonds.world_note_uuid WHERE bonds.campaign_uuid = :campaignUUID")
+    @Query("SELECT world_notes.* FROM world_notes JOIN bonds ON world_notes.uuid = bonds.world_note_uuid WHERE bonds.campaign_uuid = :campaignUUID")
     suspend fun selectNotesByBond(campaignUUID: UUID): List<DbWorldNote>
 
     @Insert
@@ -344,13 +344,15 @@ private fun characterFromDb(dbCharacter: DbCharacter, bonds: List<DbWorldNote>):
 }
 
 @Entity(
-    tableName = "progress", foreignKeys = [ForeignKey(
+    tableName = "progress",
+    foreignKeys = [ForeignKey(
         entity = DbCampaign::class,
         parentColumns = ["uuid"],
         childColumns = ["campaign_uuid"],
         onUpdate = ForeignKey.CASCADE,
         onDelete = ForeignKey.CASCADE,
-    )]
+    )],
+    indices = [Index("campaign_uuid")],
 )
 private data class DbProgress(
     @PrimaryKey @ColumnInfo val uuid: UUID,
@@ -412,7 +414,7 @@ private interface ProgressDao {
         DbBond::class,
         DbProgress::class,
     ],
-    version = 10,
+    version = 11,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -423,6 +425,7 @@ private interface ProgressDao {
         AutoMigration(from = 7, to = 8),
         AutoMigration(from = 8, to = 9),
         AutoMigration(from = 9, to = 10),
+        AutoMigration(from = 10, to = 11),
     ],
 )
 private abstract class MouldDatabase : RoomDatabase() {
@@ -492,7 +495,12 @@ suspend fun loadWorldNotes(): List<WorldNote> {
     return notes.map { worldNoteFromDb(it) }
 }
 
-suspend fun createWorldNote(title: String, type: WorldNoteType, summary: String, text: String): WorldNote {
+suspend fun createWorldNote(
+    title: String,
+    type: WorldNoteType,
+    summary: String,
+    text: String
+): WorldNote {
     val note = DbWorldNote(UUID.randomUUID(), WORLD_ID, title, type, summary, text)
     getDb().worldNoteDao().insertNote(note)
     return worldNoteFromDb(note)
@@ -511,7 +519,12 @@ suspend fun loadCampaignNotes(campaignUUID: UUID): List<CampaignNote> {
     return notes.map { campaignNoteFromDb(it) }
 }
 
-suspend fun createCampaignNote(campaignUUID: UUID, title: String = "", date: String = "", text: String = ""): CampaignNote {
+suspend fun createCampaignNote(
+    campaignUUID: UUID,
+    title: String = "",
+    date: String = "",
+    text: String = ""
+): CampaignNote {
     val db = getDb()
     val order = (db.campaignNoteDao().selectMaxOrder(campaignUUID) ?: 0) + 1
     val note = DbCampaignNote(UUID.randomUUID(), campaignUUID, title, date, text, order)
@@ -540,7 +553,12 @@ suspend fun loadProgress(campaignUUID: UUID): List<ProgressTrack> {
     return progress.map { progressFromDb(it) }
 }
 
-suspend fun createProgress(campaignUUID: UUID, name: String, challengeRank: ChallengeRank, notes: String): ProgressTrack {
+suspend fun createProgress(
+    campaignUUID: UUID,
+    name: String,
+    challengeRank: ChallengeRank,
+    notes: String
+): ProgressTrack {
     val dbProgress = DbProgress(
         UUID.randomUUID(),
         campaignUUID,
