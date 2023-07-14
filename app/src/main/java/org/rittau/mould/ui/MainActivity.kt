@@ -65,7 +65,7 @@ fun Content() {
     val navController: NavHostController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen =
-        MouldScreen.valueOf(backStackEntry?.destination?.route ?: MouldScreen.Character.name)
+        MouldScreen.valueOf(backStackEntry?.destination?.route ?: MouldScreen.CampaignList.name)
     var currentNote by rememberSaveable {
         mutableStateOf<WorldNote?>(null)
     }
