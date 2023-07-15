@@ -99,9 +99,9 @@ fun D10(
     currentRoll: Int,
     diceSize: Dp = 100.dp,
     outline: Boolean = false,
-    zeroAsTen: Boolean = false,
+    zeroIsTen: Boolean = false,
 ) {
-    val number = if (zeroAsTen && currentRoll == 0) 10 else currentRoll
+    val number = if (zeroIsTen && currentRoll == 0) 10 else currentRoll
     D10Base(number.toString(), diceSize = diceSize, outline = outline)
 }
 

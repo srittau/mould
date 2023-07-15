@@ -24,9 +24,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.rittau.mould.model.ActionRoll
 import org.rittau.mould.model.Character
+import org.rittau.mould.model.OracleRoll
+import org.rittau.mould.model.ProgressRoll
 import org.rittau.mould.model.StatOrTrack
 import org.rittau.mould.model.rollAction
 import org.rittau.mould.model.rollOracle
+import org.rittau.mould.model.rollProgress
 import java.util.UUID
 
 @Composable
@@ -82,14 +85,14 @@ fun ActionRolls(character: Character) {
         mutableStateOf(0)
     }
     var roll by rememberSaveable {
-        mutableStateOf(ActionRoll(10, 10, 6))
+        mutableStateOf(ActionRoll(0, 0, 6))
     }
 
     DiceSection(title = "Action Rolls", onRoll = {
         roll = rollAction(character, stat, adds)
     }, {
-        D10(roll.challengeRoll1Dice, diceSize = 75.dp, zeroAsTen = true)
-        D10(roll.challengeRoll2Dice, diceSize = 75.dp, zeroAsTen = true)
+        D10(roll.challengeRoll1, diceSize = 75.dp, zeroIsTen = true)
+        D10(roll.challengeRoll2, diceSize = 75.dp, zeroIsTen = true)
         D6(roll.actionRoll, diceSize = 75.dp, outline = true)
     }, {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -121,44 +124,31 @@ fun ActionRolls(character: Character) {
 
 @Composable
 fun ProgressRolls() {
-    var progress1 by rememberSaveable {
-        mutableStateOf(0)
-    }
-    var progress2 by rememberSaveable {
-        mutableStateOf(0)
+    var roll by rememberSaveable {
+        mutableStateOf(ProgressRoll(10, 10))
     }
 
     DiceSection(title = "Progress Rolls", onRoll = {
-        progress1 = (0..9).random()
-        progress2 = (0..9).random()
+        roll = rollProgress()
     }, {
-        D10(progress1, diceSize = 75.dp, zeroAsTen = true)
-        D10(progress2, diceSize = 75.dp, zeroAsTen = true)
+        D10(roll.roll1, diceSize = 75.dp, zeroIsTen = true)
+        D10(roll.roll2, diceSize = 75.dp, zeroIsTen = true)
     }, {}, {})
 }
 
 @Composable
 fun OracleRolls() {
-    var oracleValue by rememberSaveable {
-        mutableStateOf(100)
-    }
-    var oracleD100 by rememberSaveable {
-        mutableStateOf(0)
-    }
-    var oracleD10 by rememberSaveable {
-        mutableStateOf(0)
+    var roll by rememberSaveable {
+        mutableStateOf(OracleRoll(0, 0))
     }
 
     DiceSection(title = "Oracle Rolls", onRoll = {
-        val (o, d100, d10) = rollOracle()
-        oracleValue = o
-        oracleD100 = d100
-        oracleD10 = d10
+        roll = rollOracle()
     }, {
-        D100(oracleD100, diceSize = 75.dp)
-        D10(oracleD10, diceSize = 75.dp)
+        D100(roll.rollD100, diceSize = 75.dp)
+        D10(roll.rollD10, diceSize = 75.dp)
     }, {}, {
-        Text("Oracle roll: $oracleValue")
+        Text("Oracle roll: ${roll.value}")
     })
 }
 
