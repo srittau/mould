@@ -50,19 +50,26 @@ fun DiceSection(
     title: String,
     onRoll: () -> Unit = {},
     dice: @Composable () -> Unit,
-    optionsRow: @Composable () -> Unit,
-    resultRow: @Composable () -> Unit,
+    result: @Composable () -> Unit = {},
+    options: @Composable () -> Unit = {},
+    calculation: @Composable () -> Unit = {},
 ) {
     Column(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(title, style = MaterialTheme.typography.labelLarge)
-        DiceGroup(onRoll = onRoll, modifier = Modifier) {
-            dice()
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            DiceGroup(onRoll = onRoll, modifier = Modifier) {
+                dice()
+            }
+            result()
         }
-        optionsRow()
-        resultRow()
+        options()
+        calculation()
     }
 }
 
@@ -85,6 +92,11 @@ fun ActionRolls(character: Character) {
         D10(roll.challengeRoll2Dice, diceSize = 75.dp, zeroAsTen = true)
         D6(roll.actionRoll, diceSize = 75.dp, outline = true)
     }, {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            RollResult(roll.result)
+            if (roll.match) RollMatch()
+        }
+    }, {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             StatSelect(character, stat) { stat = it }
             Row(
@@ -103,11 +115,7 @@ fun ActionRolls(character: Character) {
             }
         }
     }, {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Score: ${roll.actionRoll} + ${roll.stat} + ${roll.adds} = ${roll.actionScore}")
-            Text(roll.result.name)
-            if (roll.match) Text("Match!")
-        }
+        Text("Action score: ${roll.actionRoll} + ${roll.stat} + ${roll.adds} = ${roll.actionScore}")
     })
 }
 
