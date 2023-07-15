@@ -48,10 +48,7 @@ fun DiceSection(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(title, style = MaterialTheme.typography.labelLarge)
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             DiceGroup(onRoll = onRoll, modifier = Modifier) {
                 dice()
             }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -39,7 +40,10 @@ fun ActionRolls(character: Character) {
         D10(roll.challengeRoll2, diceSize = 75.dp, zeroIsTen = true)
         D6(roll.actionRoll, diceSize = 75.dp, outline = true)
     }, {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(top = 10.dp),
+        ) {
             RollResult(roll.result)
             if (roll.match) RollMatch()
         }
