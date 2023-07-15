@@ -5,8 +5,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +41,7 @@ fun StatSelect(character: Character, stat: StatOrTrack? = null, onChange: (StatO
     }
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        TextField(
+        OutlinedTextField(
             statLabel(stat),
             readOnly = true,
             singleLine = true,
@@ -54,7 +54,7 @@ fun StatSelect(character: Character, stat: StatOrTrack? = null, onChange: (StatO
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded)
             },
             onValueChange = {},
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             modifier = Modifier.menuAnchor(),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
