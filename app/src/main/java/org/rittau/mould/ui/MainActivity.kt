@@ -29,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.runBlocking
+import org.rittau.mould.createProgress
 import org.rittau.mould.initializeDatabase
 import org.rittau.mould.model.CampaignNote
 import org.rittau.mould.model.NULL_CHARACTER
@@ -66,6 +67,9 @@ fun Content() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen =
         MouldScreen.valueOf(backStackEntry?.destination?.route ?: MouldScreen.CampaignList.name)
+    var currentTrack by rememberSaveable {
+        mutableStateOf<ProgressTrack?>(null)
+    }
     var currentNote by rememberSaveable {
         mutableStateOf<WorldNote?>(null)
     }
@@ -109,15 +113,19 @@ fun Content() {
                     ProgressView(character, progressTracks, {
                         navController.navigate(MouldScreen.Notes.name)
                     }, {
+                        val track = runBlocking { createProgress(character.uuid) }
+                        progressTracks.add(track)
+                        currentTrack = track
                         navController.navigate(MouldScreen.ProgressEditor.name)
                     })
                 }
                 composable(MouldScreen.ProgressEditor.name) {
-                    ProgressEditorView(character, {
-                        progressTracks.add(it)
-                        navController.popBackStack()
-                    }) {
-                        navController.popBackStack()
+                    val track = currentTrack
+                    if (track != null) {
+                        ProgressEditorView(track) {
+                            currentTrack = null
+                            navController.popBackStack()
+                        }
                     }
                 }
                 composable(MouldScreen.CharacterEditor.name) {

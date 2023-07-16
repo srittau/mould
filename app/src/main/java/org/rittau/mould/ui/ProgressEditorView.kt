@@ -28,35 +28,38 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
-import org.rittau.mould.createProgress
-import org.rittau.mould.model.ChallengeRank
-import org.rittau.mould.model.Character
+import org.rittau.mould.updateProgress
 import org.rittau.mould.model.ProgressTrack
 import org.rittau.mould.model.ProgressType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProgressEditorView(character: Character, onSave: (track: ProgressTrack) -> Unit, onClose: () -> Unit) {
+fun ProgressEditorView(track: ProgressTrack, onClose: () -> Unit) {
     var closeDialog by rememberSaveable { mutableStateOf(false) }
 
+    var changed by rememberSaveable {
+        mutableStateOf(false)
+    }
     var name by rememberSaveable {
-        mutableStateOf("")
+        mutableStateOf(track.name)
     }
     var challengeRank by rememberSaveable {
-        mutableStateOf(ChallengeRank.Troublesome)
+        mutableStateOf(track.challengeRank)
     }
     var type by rememberSaveable {
-        mutableStateOf(ProgressType.Other)
+        mutableStateOf(track.type)
     }
     var notes by rememberSaveable {
-        mutableStateOf("")
+        mutableStateOf(track.notes)
     }
 
     fun onSaveClick() {
-        val track = runBlocking {
-            createProgress(character.uuid, name, challengeRank, type, notes)
-        }
-        onSave(track)
+        track.name = name
+        track.challengeRank = challengeRank
+        track.type = type
+        track.notes = notes
+        runBlocking { updateProgress(track) }
+        changed = false
     }
 
     if (closeDialog) {
@@ -86,6 +89,10 @@ fun ProgressEditorView(character: Character, onSave: (track: ProgressTrack) -> U
             IconButton(onClick = { closeDialog = true }) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
             }
+        }, actions = {
+            Button(onClick = { onSaveClick() }, enabled = changed) {
+                Text("Save")
+            }
         })
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -93,23 +100,22 @@ fun ProgressEditorView(character: Character, onSave: (track: ProgressTrack) -> U
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
-            TextField(value = name,
+            TextField(
+                value = name,
                 label = { Text("Name") },
                 singleLine = true,
-                onValueChange = { name = it },
+                onValueChange = { name = it; changed = true },
                 modifier = Modifier.fillMaxWidth(),
             )
             ChallengeSelect(challengeRank, onValueChange = { challengeRank = it })
             ProgressTypeSelect(type, onValueChange = { type = it })
-            TextField(value = notes,
+            TextField(
+                value = notes,
                 label = { Text("Notes") },
                 minLines = 5,
                 onValueChange = { notes = it },
                 modifier = Modifier.fillMaxWidth(),
             )
-            Button(onClick = { onSaveClick() }) {
-                Text(text = "Save")
-            }
         }
     }
 }

@@ -599,7 +599,11 @@ suspend fun loadProgress(campaignUUID: UUID): List<ProgressTrack> {
 }
 
 suspend fun createProgress(
-    campaignUUID: UUID, name: String, challengeRank: ChallengeRank, type: ProgressType, notes: String = ""
+    campaignUUID: UUID,
+    name: String = "",
+    challengeRank: ChallengeRank = ChallengeRank.Troublesome,
+    type: ProgressType = ProgressType.Other,
+    notes: String = "",
 ): ProgressTrack {
     val dbProgress = DbProgress(
         uuid = UUID.randomUUID(),
