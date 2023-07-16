@@ -21,6 +21,18 @@ class ProgressTrack(
     ticks: Int = 0,
     var completion: ProgressCompletion = ProgressCompletion.InProgress,
 ) : Track(name, ticks), Serializable {
+    val completionLabel = when (type) {
+        ProgressType.Vow -> "Fulfill vow"
+        ProgressType.Journey -> "Reach destination"
+        else -> "Complete track"
+    }
+
+    val failLabel = when (type) {
+        ProgressType.Vow -> "Forsake vow"
+        ProgressType.Journey -> "Abandon journey"
+        else -> "Fail track"
+    }
+
     fun markProgress(): Int {
         ticks = minOf(
             MAX_TICKS, when (challengeRank) {

@@ -420,8 +420,8 @@ private fun progressFromDb(dbProgress: DbProgress): ProgressTrack {
 
 @Dao
 private interface ProgressDao {
-    @Query("SELECT * FROM progress WHERE campaign_uuid = :campaignUUID")
-    suspend fun selectProgress(campaignUUID: UUID): List<DbProgress>
+    @Query("SELECT * FROM progress WHERE campaign_uuid = :campaignUUID AND completion = 'InProgress'")
+    suspend fun selectRunningProgress(campaignUUID: UUID): List<DbProgress>
 
     @Insert
     suspend fun insertProgress(progress: DbProgress)
@@ -594,7 +594,7 @@ suspend fun deleteBond(characterUUID: UUID, worldNoteUUID: UUID) {
 }
 
 suspend fun loadProgress(campaignUUID: UUID): List<ProgressTrack> {
-    val progress = getDb().progressDao().selectProgress(campaignUUID)
+    val progress = getDb().progressDao().selectRunningProgress(campaignUUID)
     return progress.map { progressFromDb(it) }
 }
 

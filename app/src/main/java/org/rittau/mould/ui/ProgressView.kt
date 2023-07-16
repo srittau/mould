@@ -12,6 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenuItem
@@ -50,8 +52,9 @@ fun ProgressView(
     character: Character,
     progress: List<ProgressTrack>,
     onBondsClick: () -> Unit,
-    onProgressClick: (uuid: UUID) -> Unit,
     onAddProgress: () -> Unit,
+    onEditProgress: (UUID) -> Unit,
+    onRemoveProgress: (UUID) -> Unit,
 ) {
     val name = character.name.ifBlank { "Unnamed Character" }
 
@@ -76,7 +79,8 @@ fun ProgressView(
             ProgressList(
                 progress,
                 modifier = Modifier.padding(bottom = 60.dp),
-                onProgressClick = onProgressClick
+                onEdit = onEditProgress,
+                onRemove = onRemoveProgress,
             )
         }
     }
@@ -86,7 +90,8 @@ fun ProgressView(
 fun ProgressList(
     progress: List<ProgressTrack>,
     modifier: Modifier = Modifier,
-    onProgressClick: (uuid: UUID) -> Unit,
+    onEdit: (uuid: UUID) -> Unit,
+    onRemove: (uuid: UUID) -> Unit,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -95,14 +100,18 @@ fun ProgressList(
     ) {
         Text("Progress", style = MaterialTheme.typography.labelLarge)
         progress.forEach { track ->
-            ProgressTrack(track, onEdit = { onProgressClick(track.uuid) })
+            ProgressTrack(
+                track,
+                onEdit = { onEdit(track.uuid) },
+                onRemove = { onRemove(track.uuid) },
+            )
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProgressTrack(track: ProgressTrack, onEdit: () -> Unit) {
+fun ProgressTrack(track: ProgressTrack, onEdit: () -> Unit, onRemove: () -> Unit) {
     var menuExpanded by rememberSaveable {
         mutableStateOf(false)
     }
@@ -113,9 +122,19 @@ fun ProgressTrack(track: ProgressTrack, onEdit: () -> Unit) {
 
     fun onAdd() {
         progress.value = track.markProgress()
-        runBlocking {
-            updateProgress(track)
-        }
+        runBlocking { updateProgress(track) }
+    }
+
+    fun onComplete() {
+        track.complete()
+        runBlocking { updateProgress(track) }
+        onRemove()
+    }
+
+    fun onFail() {
+        track.fail()
+        runBlocking { updateProgress(track) }
+        onRemove()
     }
 
     Column {
@@ -148,6 +167,16 @@ fun ProgressTrack(track: ProgressTrack, onEdit: () -> Unit) {
                     onDismissRequest = { menuExpanded = false },
                 ) {
                     DropdownMenuItem(
+                        text = { Text(track.completionLabel) },
+                        leadingIcon = { Icon(Icons.Filled.Done, null) },
+                        onClick = { onComplete(); menuExpanded = false },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(track.failLabel) },
+                        leadingIcon = { Icon(Icons.Filled.Close, null) },
+                        onClick = { onFail(); menuExpanded = false },
+                    )
+                    DropdownMenuItem(
                         text = { Text("Edit progress track") },
                         leadingIcon = { Icon(Icons.Filled.Edit, null) },
                         onClick = { onEdit(); menuExpanded = false },
@@ -176,6 +205,6 @@ fun ProgressViewPreview() {
     val character =
         Character(UUID.randomUUID(), "Joe", bonds = setOf(UUID.randomUUID(), UUID.randomUUID()))
     MouldTheme {
-        ProgressView(character, listOf(), {}, {}, {})
+        ProgressView(character, listOf(), {}, {}, {}, {})
     }
 }

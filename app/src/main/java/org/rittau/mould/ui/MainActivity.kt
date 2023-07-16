@@ -17,7 +17,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -60,8 +62,8 @@ fun Content() {
     var character by rememberSaveable {
         mutableStateOf(NULL_CHARACTER)
     }
-    val progressTracks = rememberSaveable {
-        mutableListOf<ProgressTrack>()
+    val progressTracks = remember {
+        mutableStateListOf<ProgressTrack>()
     }
     val navController: NavHostController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -116,16 +118,20 @@ fun Content() {
                         onBondsClick = {
                             navController.navigate(MouldScreen.Notes.name)
                         },
-                        onProgressClick = { uuid ->
-                            currentTrack = progressTracks.find { it.uuid == uuid }
-                            navController.navigate(MouldScreen.ProgressEditor.name)
-                        },
                         onAddProgress = {
                             val track = runBlocking { createProgress(character.uuid) }
                             progressTracks.add(track)
                             currentTrack = track
                             navController.navigate(MouldScreen.ProgressEditor.name)
-                        })
+                        },
+                        onEditProgress = { uuid ->
+                            currentTrack = progressTracks.find { it.uuid == uuid }
+                            navController.navigate(MouldScreen.ProgressEditor.name)
+                        },
+                        onRemoveProgress = { uuid ->
+                            progressTracks.removeIf { it.uuid == uuid }
+                        }
+                    )
                 }
                 composable(MouldScreen.ProgressEditor.name) {
                     val track = currentTrack
