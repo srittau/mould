@@ -110,21 +110,31 @@ fun Content() {
                     }
                 }
                 composable(MouldScreen.Progress.name) {
-                    ProgressView(character, progressTracks, {
-                        navController.navigate(MouldScreen.Notes.name)
-                    }, {
-                        val track = runBlocking { createProgress(character.uuid) }
-                        progressTracks.add(track)
-                        currentTrack = track
-                        navController.navigate(MouldScreen.ProgressEditor.name)
-                    })
+                    ProgressView(
+                        character,
+                        progressTracks,
+                        onBondsClick = {
+                            navController.navigate(MouldScreen.Notes.name)
+                        },
+                        onProgressClick = { uuid ->
+                            currentTrack = progressTracks.find { it.uuid == uuid }
+                            navController.navigate(MouldScreen.ProgressEditor.name)
+                        },
+                        onAddProgress = {
+                            val track = runBlocking { createProgress(character.uuid) }
+                            progressTracks.add(track)
+                            currentTrack = track
+                            navController.navigate(MouldScreen.ProgressEditor.name)
+                        })
                 }
                 composable(MouldScreen.ProgressEditor.name) {
                     val track = currentTrack
                     if (track != null) {
-                        ProgressEditorView(track) {
+                        ProgressEditorView(track, {
                             currentTrack = null
                             navController.popBackStack()
+                        }) { uuid ->
+                            progressTracks.removeIf { it.uuid == uuid }
                         }
                     }
                 }

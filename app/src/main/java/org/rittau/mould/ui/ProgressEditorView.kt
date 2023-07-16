@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -28,14 +29,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
+import org.rittau.mould.deleteProgress
 import org.rittau.mould.updateProgress
 import org.rittau.mould.model.ProgressTrack
 import org.rittau.mould.model.ProgressType
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProgressEditorView(track: ProgressTrack, onClose: () -> Unit) {
+fun ProgressEditorView(track: ProgressTrack, onClose: () -> Unit, onDelete: (uuid: UUID) -> Unit) {
     var closeDialog by rememberSaveable { mutableStateOf(false) }
+    var deleteDialog by rememberSaveable { mutableStateOf(false) }
 
     var changed by rememberSaveable {
         mutableStateOf(false)
@@ -53,6 +57,14 @@ fun ProgressEditorView(track: ProgressTrack, onClose: () -> Unit) {
         mutableStateOf(track.notes)
     }
 
+    fun onCloseClick() {
+        if (changed) {
+            closeDialog = true
+        } else {
+            onClose()
+        }
+    }
+
     fun onSaveClick() {
         track.name = name
         track.challengeRank = challengeRank
@@ -60,6 +72,12 @@ fun ProgressEditorView(track: ProgressTrack, onClose: () -> Unit) {
         track.notes = notes
         runBlocking { updateProgress(track) }
         changed = false
+    }
+
+    fun onDeleteClick() {
+        runBlocking { deleteProgress(track.uuid) }
+        onDelete(track.uuid)
+        onClose()
     }
 
     if (closeDialog) {
@@ -82,16 +100,39 @@ fun ProgressEditorView(track: ProgressTrack, onClose: () -> Unit) {
         )
     }
 
+    if (deleteDialog) {
+        AlertDialog(
+            onDismissRequest = { deleteDialog = false },
+            confirmButton = {
+                Button(onClick = {
+                    deleteDialog = false
+                    onDeleteClick()
+                }) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { deleteDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+            text = { Text("Are you sure you want to delete this progress track?") },
+        )
+    }
+
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         TopAppBar(title = {
-            Text("Add Progress Track")
+            Text("Edit Progress Track")
         }, navigationIcon = {
-            IconButton(onClick = { closeDialog = true }) {
+            IconButton(onClick = { onCloseClick() }) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
             }
         }, actions = {
             Button(onClick = { onSaveClick() }, enabled = changed) {
                 Text("Save")
+            }
+            IconButton(onClick = { deleteDialog = true }) {
+                Icon(Icons.Filled.Delete, contentDescription = "Delete")
             }
         })
         Column(
@@ -107,13 +148,13 @@ fun ProgressEditorView(track: ProgressTrack, onClose: () -> Unit) {
                 onValueChange = { name = it; changed = true },
                 modifier = Modifier.fillMaxWidth(),
             )
-            ChallengeSelect(challengeRank, onValueChange = { challengeRank = it })
-            ProgressTypeSelect(type, onValueChange = { type = it })
+            ChallengeSelect(challengeRank, onValueChange = { challengeRank = it; changed = true })
+            ProgressTypeSelect(type, onValueChange = { type = it; changed = true })
             TextField(
                 value = notes,
                 label = { Text("Notes") },
                 minLines = 5,
-                onValueChange = { notes = it },
+                onValueChange = { notes = it; changed = true },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
