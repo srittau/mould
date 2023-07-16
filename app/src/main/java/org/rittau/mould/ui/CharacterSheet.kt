@@ -24,12 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.rittau.mould.model.Character
+import org.rittau.mould.model.StatOrTrack
 import org.rittau.mould.ui.theme.MouldTheme
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterSheet(character: Character, onEdit: () -> Unit) {
+fun CharacterSheet(character: Character, onEdit: () -> Unit, onStatClick: (StatOrTrack) -> Unit) {
     val name = character.name.ifBlank { "Unnamed Character" }
     Surface {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -50,11 +51,30 @@ fun CharacterSheet(character: Character, onEdit: () -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    StatsBlock(character, modifier = Modifier.padding(bottom = 32.dp))
+                    StatsBlock(
+                        character,
+                        modifier = Modifier.padding(bottom = 32.dp),
+                        onClick = onStatClick,
+                    )
                     MomentumTrack(character)
-                    ConditionTrack({ HealthIcon(modifier = it) }, character, character.healthTrack)
-                    ConditionTrack({ SpiritIcon(modifier = it) }, character, character.spiritTrack)
-                    ConditionTrack({ SupplyIcon(modifier = it) }, character, character.supplyTrack)
+                    ConditionTrack(
+                        { HealthIcon(modifier = it) },
+                        character,
+                        character.healthTrack,
+                        onClick = { onStatClick(StatOrTrack.Health) },
+                    )
+                    ConditionTrack(
+                        { SpiritIcon(modifier = it) },
+                        character,
+                        character.spiritTrack,
+                        onClick = { onStatClick(StatOrTrack.Spirit) },
+                    )
+                    ConditionTrack(
+                        { SupplyIcon(modifier = it) },
+                        character,
+                        character.supplyTrack,
+                        onClick = { onStatClick(StatOrTrack.Supply) },
+                    )
                 }
                 Divider()
                 CharacterNotes(character)
@@ -68,6 +88,6 @@ fun CharacterSheet(character: Character, onEdit: () -> Unit) {
 @Composable
 fun CharacterSheetPreview() {
     MouldTheme {
-        CharacterSheet(Character(UUID.randomUUID(), "John")) {}
+        CharacterSheet(Character(UUID.randomUUID(), "John"), {}, {})
     }
 }

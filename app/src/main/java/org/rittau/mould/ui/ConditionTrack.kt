@@ -2,6 +2,7 @@ package org.rittau.mould.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -35,6 +36,7 @@ fun ConditionTrack(
     icon: @Composable (modifier: Modifier) -> Unit,
     character: Character,
     track: ConditionTrack,
+    onClick: () -> Unit,
 ) {
     var value by rememberSaveable {
         mutableStateOf(track.value)
@@ -50,7 +52,9 @@ fun ConditionTrack(
         saveCharacterSync(character)
     }
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable { onClick() }) {
         icon(modifier = Modifier.size(24.dp))
         IconButton(enabled = track.canLose, onClick = { onLose() }) {
             Icon(Icons.Filled.Remove, "Lose", tint = MaterialTheme.colorScheme.secondary)
@@ -81,6 +85,11 @@ fun ConditionTrack(
 fun ConditionTrackPreview() {
     val character = Character(UUID.randomUUID(), "", health = 3)
     MouldTheme {
-        ConditionTrack({ HealthIcon(modifier = it) }, character, character.healthTrack)
+        ConditionTrack(
+            { HealthIcon(modifier = it) },
+            character,
+            character.healthTrack,
+            onClick = {},
+        )
     }
 }

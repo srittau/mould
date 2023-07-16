@@ -16,17 +16,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.rittau.mould.model.Character
+import org.rittau.mould.model.StatOrTrack
 import java.util.UUID
 
 @Composable
-fun DiceView(character: Character) {
+fun DiceView(character: Character, stat: StatOrTrack?, onChangeStat: (StatOrTrack?) -> Unit) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        ActionRolls(character)
+        ActionRolls(character, stat, onChangeStat)
         Divider()
         ProgressRolls()
         Divider()
@@ -63,5 +64,5 @@ fun DiceSection(
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun DiceViewPreview() {
-    DiceView(Character(UUID.randomUUID(), "Joe"))
+    DiceView(Character(UUID.randomUUID(), "Joe"), null) {}
 }

@@ -25,10 +25,7 @@ import org.rittau.mould.ui.theme.MouldTheme
 import java.util.UUID
 
 @Composable
-fun ActionRolls(character: Character) {
-    var stat by rememberSaveable {
-        mutableStateOf<StatOrTrack?>(null)
-    }
+fun ActionRolls(character: Character, stat: StatOrTrack?, onChangeStat: (StatOrTrack?) -> Unit) {
     var adds by rememberSaveable {
         mutableStateOf(0)
     }
@@ -55,9 +52,9 @@ fun ActionRolls(character: Character) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            val add = if (stat != null) character.statOrTrackValue(stat!!) else 0
+            val add = if (stat != null) character.statOrTrackValue(stat) else 0
             LabeledOption("Stat or Track", add) {
-                StatSelect(character, stat, modifier = Modifier.fillMaxWidth()) { stat = it }
+                StatSelect(character, stat, modifier = Modifier.fillMaxWidth()) { onChangeStat(it) }
             }
             LabeledOption("Adds", adds) {
                 Slider(
@@ -98,6 +95,6 @@ fun LabeledOption(label: String, adds: Int? = null, content: @Composable () -> U
 @Composable
 fun ActionRollsPreview() {
     MouldTheme {
-        ActionRolls(Character(UUID.randomUUID(), "Joe"))
+        ActionRolls(Character(UUID.randomUUID(), "Joe"), null) {}
     }
 }

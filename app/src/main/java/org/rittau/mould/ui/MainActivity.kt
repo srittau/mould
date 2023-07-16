@@ -36,6 +36,7 @@ import org.rittau.mould.initializeDatabase
 import org.rittau.mould.model.CampaignNote
 import org.rittau.mould.model.NULL_CHARACTER
 import org.rittau.mould.model.ProgressTrack
+import org.rittau.mould.model.StatOrTrack
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.ui.theme.MouldTheme
 
@@ -59,16 +60,18 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Content() {
+    val navController: NavHostController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentScreen =
+        MouldScreen.valueOf(backStackEntry?.destination?.route ?: MouldScreen.CampaignList.name)
+
     var character by rememberSaveable {
         mutableStateOf(NULL_CHARACTER)
     }
     val progressTracks = remember {
         mutableStateListOf<ProgressTrack>()
     }
-    val navController: NavHostController = rememberNavController()
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen =
-        MouldScreen.valueOf(backStackEntry?.destination?.route ?: MouldScreen.CampaignList.name)
+
     var currentTrack by rememberSaveable {
         mutableStateOf<ProgressTrack?>(null)
     }
@@ -77,6 +80,10 @@ fun Content() {
     }
     var currentJournal by rememberSaveable {
         mutableStateOf<CampaignNote?>(null)
+    }
+
+    var actionStat by rememberSaveable {
+        mutableStateOf<StatOrTrack?>(null)
     }
 
     MouldTheme {
@@ -107,9 +114,16 @@ fun Content() {
                     })
                 }
                 composable(MouldScreen.Character.name) {
-                    CharacterSheet(character) {
-                        navController.navigate(MouldScreen.CharacterEditor.name)
-                    }
+                    CharacterSheet(
+                        character,
+                        onEdit = {
+                            navController.navigate(MouldScreen.CharacterEditor.name)
+                        },
+                        onStatClick = {
+                            actionStat = it
+                            navController.navigate(MouldScreen.Dice.name)
+                        },
+                    )
                 }
                 composable(MouldScreen.Progress.name) {
                     ProgressView(
@@ -150,7 +164,7 @@ fun Content() {
                     }
                 }
                 composable(MouldScreen.Dice.name) {
-                    DiceView(character)
+                    DiceView(character, actionStat) { actionStat = it }
                 }
                 composable(MouldScreen.Notes.name) {
                     NotesView(character, { note, openEditor ->
