@@ -1,0 +1,635 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 12,
+    "identityHash": "3ca6b2dd0d4c443c0c41ab9851eeee04",
+    "entities": [
+      {
+        "tableName": "scenarios",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "worlds",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "world_notes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` BLOB NOT NULL, `world_id` TEXT NOT NULL, `title` TEXT NOT NULL, `type` TEXT NOT NULL DEFAULT 'Other', `summary` TEXT NOT NULL DEFAULT '', `text` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`uuid`), FOREIGN KEY(`world_id`) REFERENCES `worlds`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "worldID",
+            "columnName": "world_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'Other'"
+          },
+          {
+            "fieldPath": "summary",
+            "columnName": "summary",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_world_notes_world_id",
+            "unique": false,
+            "columnNames": [
+              "world_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_world_notes_world_id` ON `${TABLE_NAME}` (`world_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "worlds",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "world_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "campaigns",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` BLOB NOT NULL, `scenario_id` TEXT NOT NULL, `world_id` TEXT NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`uuid`), FOREIGN KEY(`scenario_id`) REFERENCES `scenarios`(`id`) ON UPDATE CASCADE ON DELETE RESTRICT , FOREIGN KEY(`world_id`) REFERENCES `worlds`(`id`) ON UPDATE CASCADE ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scenarioID",
+            "columnName": "scenario_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "worldID",
+            "columnName": "world_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_campaigns_scenario_id",
+            "unique": false,
+            "columnNames": [
+              "scenario_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_campaigns_scenario_id` ON `${TABLE_NAME}` (`scenario_id`)"
+          },
+          {
+            "name": "index_campaigns_world_id",
+            "unique": false,
+            "columnNames": [
+              "world_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_campaigns_world_id` ON `${TABLE_NAME}` (`world_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "scenarios",
+            "onDelete": "RESTRICT",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "scenario_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "worlds",
+            "onDelete": "RESTRICT",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "world_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "campaign_notes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` BLOB NOT NULL, `campaign_uuid` BLOB NOT NULL, `title` TEXT NOT NULL, `date` TEXT NOT NULL DEFAULT '', `text` TEXT NOT NULL, `order` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`uuid`), FOREIGN KEY(`campaign_uuid`) REFERENCES `campaigns`(`uuid`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "campaignUUID",
+            "columnName": "campaign_uuid",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "order",
+            "columnName": "order",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_campaign_notes_campaign_uuid",
+            "unique": false,
+            "columnNames": [
+              "campaign_uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_campaign_notes_campaign_uuid` ON `${TABLE_NAME}` (`campaign_uuid`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "campaigns",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "campaign_uuid"
+            ],
+            "referencedColumns": [
+              "uuid"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "characters",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`campaign_uuid` BLOB NOT NULL, `name` TEXT NOT NULL, `summary` TEXT NOT NULL DEFAULT '', `experience` INTEGER NOT NULL DEFAULT 0, `spent_experience` INTEGER NOT NULL DEFAULT 0, `edge` INTEGER NOT NULL DEFAULT 1, `heart` INTEGER NOT NULL DEFAULT 1, `iron` INTEGER NOT NULL DEFAULT 1, `shadow` INTEGER NOT NULL DEFAULT 1, `wits` INTEGER NOT NULL DEFAULT 1, `momentum` INTEGER NOT NULL DEFAULT 2, `health` INTEGER NOT NULL DEFAULT 5, `spirit` INTEGER NOT NULL DEFAULT 5, `supply` INTEGER NOT NULL DEFAULT 5, `wounded` INTEGER NOT NULL DEFAULT FALSE, `unprepared` INTEGER NOT NULL DEFAULT FALSE, `shaken` INTEGER NOT NULL DEFAULT FALSE, `encumbered` INTEGER NOT NULL DEFAULT FALSE, `maimed` INTEGER NOT NULL DEFAULT FALSE, `corrupted` INTEGER NOT NULL DEFAULT FALSE, `cursed` INTEGER NOT NULL DEFAULT FALSE, `tormented` INTEGER NOT NULL DEFAULT FALSE, `notes` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`campaign_uuid`), FOREIGN KEY(`campaign_uuid`) REFERENCES `campaigns`(`uuid`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "campaignUUID",
+            "columnName": "campaign_uuid",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "summary",
+            "columnName": "summary",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "experience",
+            "columnName": "experience",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "spentExperience",
+            "columnName": "spent_experience",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "edge",
+            "columnName": "edge",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "heart",
+            "columnName": "heart",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "iron",
+            "columnName": "iron",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "shadow",
+            "columnName": "shadow",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "wits",
+            "columnName": "wits",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "momentum",
+            "columnName": "momentum",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "2"
+          },
+          {
+            "fieldPath": "health",
+            "columnName": "health",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "5"
+          },
+          {
+            "fieldPath": "spirit",
+            "columnName": "spirit",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "5"
+          },
+          {
+            "fieldPath": "supply",
+            "columnName": "supply",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "5"
+          },
+          {
+            "fieldPath": "wounded",
+            "columnName": "wounded",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "FALSE"
+          },
+          {
+            "fieldPath": "unprepared",
+            "columnName": "unprepared",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "FALSE"
+          },
+          {
+            "fieldPath": "shaken",
+            "columnName": "shaken",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "FALSE"
+          },
+          {
+            "fieldPath": "encumbered",
+            "columnName": "encumbered",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "FALSE"
+          },
+          {
+            "fieldPath": "maimed",
+            "columnName": "maimed",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "FALSE"
+          },
+          {
+            "fieldPath": "corrupted",
+            "columnName": "corrupted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "FALSE"
+          },
+          {
+            "fieldPath": "cursed",
+            "columnName": "cursed",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "FALSE"
+          },
+          {
+            "fieldPath": "tormented",
+            "columnName": "tormented",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "FALSE"
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "campaign_uuid"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": [
+          {
+            "table": "campaigns",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "campaign_uuid"
+            ],
+            "referencedColumns": [
+              "uuid"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "bonds",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`campaign_uuid` BLOB NOT NULL, `world_note_uuid` BLOB NOT NULL, PRIMARY KEY(`campaign_uuid`, `world_note_uuid`), FOREIGN KEY(`campaign_uuid`) REFERENCES `characters`(`campaign_uuid`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`world_note_uuid`) REFERENCES `world_notes`(`uuid`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "characterUUID",
+            "columnName": "campaign_uuid",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "worldNoteUUID",
+            "columnName": "world_note_uuid",
+            "affinity": "BLOB",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "campaign_uuid",
+            "world_note_uuid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_bonds_campaign_uuid",
+            "unique": false,
+            "columnNames": [
+              "campaign_uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bonds_campaign_uuid` ON `${TABLE_NAME}` (`campaign_uuid`)"
+          },
+          {
+            "name": "index_bonds_world_note_uuid",
+            "unique": false,
+            "columnNames": [
+              "world_note_uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bonds_world_note_uuid` ON `${TABLE_NAME}` (`world_note_uuid`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "characters",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "campaign_uuid"
+            ],
+            "referencedColumns": [
+              "campaign_uuid"
+            ]
+          },
+          {
+            "table": "world_notes",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "world_note_uuid"
+            ],
+            "referencedColumns": [
+              "uuid"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "progress",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` BLOB NOT NULL, `campaign_uuid` BLOB NOT NULL, `name` TEXT NOT NULL, `challenge_rank` TEXT NOT NULL, `type` TEXT NOT NULL DEFAULT 'Other', `notes` TEXT NOT NULL DEFAULT '', `progress` INTEGER NOT NULL, `completion` TEXT NOT NULL, PRIMARY KEY(`uuid`), FOREIGN KEY(`campaign_uuid`) REFERENCES `campaigns`(`uuid`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "campaignUUID",
+            "columnName": "campaign_uuid",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "challengeRank",
+            "columnName": "challenge_rank",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'Other'"
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "progress",
+            "columnName": "progress",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completion",
+            "columnName": "completion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_progress_campaign_uuid",
+            "unique": false,
+            "columnNames": [
+              "campaign_uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_progress_campaign_uuid` ON `${TABLE_NAME}` (`campaign_uuid`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "campaigns",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "campaign_uuid"
+            ],
+            "referencedColumns": [
+              "uuid"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3ca6b2dd0d4c443c0c41ab9851eeee04')"
+    ]
+  }
+}

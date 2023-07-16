@@ -28,6 +28,7 @@ import org.rittau.mould.model.ChallengeRank
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.ProgressCompletion
 import org.rittau.mould.model.ProgressTrack
+import org.rittau.mould.model.ProgressType
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.model.WorldNoteType
 import java.util.UUID
@@ -385,6 +386,7 @@ private data class DbProgress(
     @ColumnInfo(name = "campaign_uuid") val campaignUUID: UUID,
     @ColumnInfo val name: String,
     @ColumnInfo(name = "challenge_rank") val challengeRank: ChallengeRank,
+    @ColumnInfo(defaultValue = "Other") val type: ProgressType = ProgressType.Other,
     @ColumnInfo(defaultValue = "") val notes: String = "",
     @ColumnInfo val progress: Int = 0,
     @ColumnInfo val completion: ProgressCompletion = ProgressCompletion.InProgress,
@@ -394,11 +396,12 @@ private fun progressToDb(progress: ProgressTrack): DbProgress {
     return DbProgress(
         uuid = progress.uuid,
         campaignUUID = progress.campaignUUID,
-        progress.name,
-        progress.challengeRank,
-        progress.notes,
-        progress.ticks,
-        progress.completion,
+        name = progress.name,
+        challengeRank = progress.challengeRank,
+        type = progress.type,
+        notes = progress.notes,
+        progress = progress.ticks,
+        completion = progress.completion,
     )
 }
 
@@ -406,11 +409,12 @@ private fun progressFromDb(dbProgress: DbProgress): ProgressTrack {
     return ProgressTrack(
         campaignUUID = dbProgress.campaignUUID,
         uuid = dbProgress.uuid,
-        dbProgress.name,
-        dbProgress.challengeRank,
-        dbProgress.notes,
-        dbProgress.progress,
-        dbProgress.completion,
+        name = dbProgress.name,
+        challengeRank = dbProgress.challengeRank,
+        type = dbProgress.type,
+        notes = dbProgress.notes,
+        ticks = dbProgress.progress,
+        completion = dbProgress.completion,
     )
 }
 
@@ -440,7 +444,7 @@ private interface ProgressDao {
         DbBond::class,
         DbProgress::class,
     ],
-    version = 11,
+    version = 12,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -452,6 +456,7 @@ private interface ProgressDao {
         AutoMigration(from = 8, to = 9),
         AutoMigration(from = 9, to = 10),
         AutoMigration(from = 10, to = 11),
+        AutoMigration(from = 11, to = 12),
     ],
 )
 private abstract class MouldDatabase : RoomDatabase() {
@@ -594,16 +599,17 @@ suspend fun loadProgress(campaignUUID: UUID): List<ProgressTrack> {
 }
 
 suspend fun createProgress(
-    campaignUUID: UUID, name: String, challengeRank: ChallengeRank, notes: String
+    campaignUUID: UUID, name: String, challengeRank: ChallengeRank, type: ProgressType, notes: String = ""
 ): ProgressTrack {
     val dbProgress = DbProgress(
-        UUID.randomUUID(),
-        campaignUUID,
-        name,
-        challengeRank,
-        notes,
-        0,
-        ProgressCompletion.InProgress
+        uuid = UUID.randomUUID(),
+        campaignUUID = campaignUUID,
+        name = name,
+        challengeRank = challengeRank,
+        type = type,
+        notes = notes,
+        progress = 0,
+        completion = ProgressCompletion.InProgress,
     )
     getDb().progressDao().insertProgress(dbProgress)
     return progressFromDb(dbProgress)

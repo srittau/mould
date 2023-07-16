@@ -7,11 +7,16 @@ enum class ProgressCompletion {
     InProgress, Completed, Failed
 }
 
+enum class ProgressType {
+    Other, Vow, Journey
+}
+
 class ProgressTrack(
     val campaignUUID: UUID,
     val uuid: UUID,
     name: String,
     var challengeRank: ChallengeRank,
+    var type: ProgressType = ProgressType.Other,
     var notes: String = "",
     ticks: Int = 0,
     var completion: ProgressCompletion = ProgressCompletion.InProgress,

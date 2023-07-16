@@ -25,11 +25,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.ProgressTrack
+import org.rittau.mould.model.ProgressType
 import org.rittau.mould.ui.theme.MouldTheme
 import org.rittau.mould.updateProgress
 import java.util.UUID
@@ -56,9 +58,11 @@ fun ProgressView(
                 Icon(Icons.Filled.Add, "Add progress track")
             }
         }) { contentPadding ->
-        Column(modifier = Modifier
-            .padding(contentPadding)
-            .verticalScroll(rememberScrollState())) {
+        Column(
+            modifier = Modifier
+                .padding(contentPadding)
+                .verticalScroll(rememberScrollState())
+        ) {
             BondsSection(character.bondsTrack, onBondsClick)
             ProgressList(progress, modifier = Modifier.padding(bottom = 60.dp))
         }
@@ -111,6 +115,13 @@ fun ProgressTrack(track: ProgressTrack) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
+            if (track.type != ProgressType.Other) {
+                Text(
+                    "${track.type.name}:",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
             Text(track.name, style = MaterialTheme.typography.labelMedium)
             ChallengeIndicator(rank = track.challengeRank)
         }
