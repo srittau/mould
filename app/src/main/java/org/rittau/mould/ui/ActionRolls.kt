@@ -1,11 +1,12 @@
 package org.rittau.mould.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,13 +14,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.rittau.mould.model.ActionRoll
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.StatOrTrack
 import org.rittau.mould.model.rollAction
+import org.rittau.mould.ui.theme.MouldTheme
+import java.util.UUID
 
 @Composable
 fun ActionRolls(character: Character) {
@@ -48,24 +51,53 @@ fun ActionRolls(character: Character) {
             if (roll.match) RollMatch()
         }
     }, {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            StatSelect(character, stat) { stat = it }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            val add = if (stat != null) character.statOrTrackValue(stat!!) else 0
+            LabeledOption("Stat or Track", add) {
+                StatSelect(character, stat, modifier = Modifier.fillMaxWidth()) { stat = it }
+            }
+            LabeledOption("Adds", adds) {
                 Slider(
                     value = adds.toFloat(),
                     onValueChange = { adds = it.toInt() },
                     valueRange = 0f..5f,
                     steps = 4,
-                    modifier = Modifier.width(300.dp)
                 )
-                Text("+${adds}")
             }
         }
-    }, {
-        Text("Action score: ${roll.actionRoll} + ${roll.stat} + ${roll.adds} = ${roll.actionScore}")
+        LabeledOption("Action Score") {
+            Text("${roll.actionRoll} + ${roll.stat} + ${roll.adds} = ${roll.actionScore}")
+        }
     })
+}
+
+@Composable
+fun LabeledOption(label: String, adds: Int? = null, content: @Composable () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(label, style = MaterialTheme.typography.labelSmall)
+            if (adds != null) {
+                Text(
+                    "+${adds}",
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+        }
+        content()
+    }
+}
+
+@Preview(name = "Light Mode", showBackground = true)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ActionRollsPreview() {
+    MouldTheme {
+        ActionRolls(Character(UUID.randomUUID(), "Joe"))
+    }
 }
