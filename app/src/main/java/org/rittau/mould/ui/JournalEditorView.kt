@@ -23,19 +23,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.runBlocking
 import org.rittau.mould.deleteCampaignNote
 import org.rittau.mould.model.CampaignNote
+import org.rittau.mould.model.Character
+import org.rittau.mould.model.MouldModel
 import org.rittau.mould.updateCampaignNote
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
+fun JournalEditorView(model: MouldModel, navigation: MouldNavigation) {
+    val uuid = navigation.selectedJournal ?: return
+    val note = model.findJournalEntry(uuid) ?: return
+
     var title by rememberSaveable {
         mutableStateOf(note.title)
     }
@@ -53,7 +60,7 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
         if (changed) {
             closeDialog = true
         } else {
-            onClose()
+            navigation.onCloseJournalEditor()
         }
     }
 
@@ -68,10 +75,9 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
     }
 
     fun onDelete() {
-        runBlocking {
-            deleteCampaignNote(note)
-        }
-        onClose()
+        runBlocking { deleteCampaignNote(note) }
+        model.removeJournalEntry(note.uuid)
+        navigation.onDeleteJournalEntry()
     }
 
     if (closeDialog) {
@@ -80,7 +86,7 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
             confirmButton = {
                 Button(onClick = {
                     closeDialog = false
-                    onClose()
+                    navigation.onCloseJournalEditor()
                 }) {
                     Text("Close")
                 }
@@ -172,9 +178,12 @@ fun JournalEditorView(note: CampaignNote, onClose: () -> Unit) {
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun JournalEditorViewPreview() {
-    JournalEditorView(
-        CampaignNote(
-            UUID.randomUUID(), "Title", "Some date", "Text\nwith multiple\n\nlines"
-        )
-    ) {}
+    val character = Character(UUID.randomUUID(), "Joe")
+    val note = CampaignNote(
+        UUID.randomUUID(), "Title", "Some date", "Text\nwith multiple\n\nlines"
+    )
+    val model = MouldModel()
+    model.setCharacter(character, emptyList(), emptyList(), listOf(note))
+    val nav = MouldNavigation(NavHostController(LocalContext.current))
+    JournalEditorView(model, nav)
 }

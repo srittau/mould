@@ -558,8 +558,8 @@ suspend fun updateWorldNote(note: WorldNote) {
     getDb().worldNoteDao().updateNote(worldNoteToDb(note))
 }
 
-suspend fun deleteWorldNote(note: WorldNote) {
-    getDb().worldNoteDao().deleteNote(note.uuid)
+suspend fun deleteWorldNote(uuid: UUID) {
+    getDb().worldNoteDao().deleteNote(uuid)
 }
 
 suspend fun loadCampaignNotes(campaignUUID: UUID): List<CampaignNote> {

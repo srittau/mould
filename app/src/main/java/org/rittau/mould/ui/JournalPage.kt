@@ -7,41 +7,24 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import kotlinx.coroutines.runBlocking
 import org.rittau.mould.createCampaignNote
-import org.rittau.mould.loadCampaignNotes
-import org.rittau.mould.model.CampaignNote
-import org.rittau.mould.model.Character
-import java.util.UUID
+import org.rittau.mould.model.MouldModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun JournalPage(character: Character, onOpenJournal: (CampaignNote) -> Unit) {
-    val notes = remember {
-        val l = mutableStateListOf<CampaignNote>()
-        l.addAll(prepareNotes(character.uuid))
-        l
-    }
-
+fun JournalPage(model: MouldModel, navigation: MouldNavigation) {
     Scaffold(floatingActionButton = {
         FloatingActionButton(onClick = {
-            val note = runBlocking {
-                createCampaignNote(character.uuid)
+            val entry = runBlocking {
+                createCampaignNote(model.character.uuid)
             }
-            notes.add(note)
-            onOpenJournal.invoke(note)
+            model.addJournalEntry(entry)
+            navigation.onJournalEntryAdded(entry.uuid)
         }) {
             Icon(Icons.Filled.Add, "Add journal entry")
         }
     }) {
-        JournalList(notes, onOpenJournal)
+        JournalList(model, navigation)
     }
-}
-
-private fun prepareNotes(campaignUUID: UUID): MutableList<CampaignNote> {
-    return runBlocking {
-        loadCampaignNotes(campaignUUID)
-    }.toMutableList()
 }

@@ -15,17 +15,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import org.rittau.mould.model.ActionRoll
 import org.rittau.mould.model.Character
-import org.rittau.mould.model.StatOrTrack
 import org.rittau.mould.model.rollAction
 import org.rittau.mould.ui.theme.MouldTheme
 import java.util.UUID
 
 @Composable
-fun ActionRolls(character: Character, stat: StatOrTrack?, onChangeStat: (StatOrTrack?) -> Unit) {
+fun ActionRolls(character: Character, navigation: MouldNavigation) {
     var adds by rememberSaveable {
         mutableStateOf(0)
     }
@@ -34,7 +35,7 @@ fun ActionRolls(character: Character, stat: StatOrTrack?, onChangeStat: (StatOrT
     }
 
     DiceSection(title = "Action Rolls", onRoll = {
-        roll = rollAction(character, stat, adds)
+        roll = rollAction(character, navigation.selectedStat, adds)
     }, {
         D10(roll.challengeRoll1, diceSize = 75.dp, zeroIsTen = true)
         D10(roll.challengeRoll2, diceSize = 75.dp, zeroIsTen = true)
@@ -52,9 +53,10 @@ fun ActionRolls(character: Character, stat: StatOrTrack?, onChangeStat: (StatOrT
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
+            val stat = navigation.selectedStat
             val add = if (stat != null) character.statOrTrackValue(stat) else 0
             LabeledOption("Stat or Track", add) {
-                StatSelect(character, stat, modifier = Modifier.fillMaxWidth()) { onChangeStat(it) }
+                StatSelect(character, stat, modifier = Modifier.fillMaxWidth()) { navigation.selectedStat = it }
             }
             LabeledOption("Adds", adds) {
                 Slider(
@@ -94,7 +96,8 @@ fun LabeledOption(label: String, adds: Int? = null, content: @Composable () -> U
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ActionRollsPreview() {
+    val nav = MouldNavigation(NavHostController(LocalContext.current))
     MouldTheme {
-        ActionRolls(Character(UUID.randomUUID(), "Joe"), null) {}
+        ActionRolls(Character(UUID.randomUUID(), "Joe"), nav)
     }
 }

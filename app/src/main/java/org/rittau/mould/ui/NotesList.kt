@@ -12,21 +12,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import org.rittau.mould.R
-import org.rittau.mould.model.Character
+import org.rittau.mould.model.MouldModel
 import org.rittau.mould.model.WorldNote
 
 
 @Composable
-fun NotesList(character: Character, notes: List<WorldNote>, onClick: (WorldNote) -> Unit) {
+fun NotesList(model: MouldModel, navigation: MouldNavigation) {
     LazyColumn {
-        items(notes, key = { note -> note.uuid }) { note ->
-            NoteItem(character, note, onClick)
+        items(model.worldNotes, key = { note -> note.uuid }) { note ->
+            NoteItem(model, note, navigation)
         }
     }
 }
 
 @Composable
-fun NoteItem(character: Character, note: WorldNote, onClick: (WorldNote) -> Unit) {
+fun NoteItem(model: MouldModel, note: WorldNote, navigation: MouldNavigation) {
     ListItem(
         headlineContent = {
             Text(
@@ -39,12 +39,12 @@ fun NoteItem(character: Character, note: WorldNote, onClick: (WorldNote) -> Unit
             NoteTypeIcon(note.type, modifier = Modifier.size(24.dp))
         },
         trailingContent = {
-            if (character.isBondedTo(note.uuid)) {
+            if (model.character.isBondedTo(note.uuid)) {
                 Icon(
                     painterResource(R.drawable.bond), "Bonded", modifier = Modifier.size(24.dp),
                 )
             }
         },
-        modifier = Modifier.clickable { onClick.invoke(note) },
+        modifier = Modifier.clickable { navigation.onNoteClicked(note.uuid) },
     )
 }

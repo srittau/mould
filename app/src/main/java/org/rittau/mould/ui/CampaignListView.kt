@@ -25,13 +25,12 @@ import kotlinx.coroutines.runBlocking
 import org.rittau.mould.createCampaign
 import org.rittau.mould.loadAllCampaigns
 import org.rittau.mould.loadCharacter
-import org.rittau.mould.loadProgress
 import org.rittau.mould.model.Campaign
-import org.rittau.mould.model.LoadedCampaign
+import org.rittau.mould.model.MouldModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun CampaignListView(onCampaignSelected: (LoadedCampaign) -> Unit) {
+fun CampaignListView(model: MouldModel, navigation: MouldNavigation) {
     val campaigns = remember {
         val cs = mutableStateListOf<Campaign>()
         cs.addAll(runBlocking { loadAllCampaigns() })
@@ -55,22 +54,15 @@ fun CampaignListView(onCampaignSelected: (LoadedCampaign) -> Unit) {
         }) {
             LazyColumn {
                 items(campaigns, key = { c -> c.uuid }) {
-                    CampaignItem(it, {
-                        val character = runBlocking { loadCharacter(it.uuid) }
-                        val progress = runBlocking { loadProgress(it.uuid) }
-                        onCampaignSelected(LoadedCampaign(character, progress))
+                    CampaignItem(it, { campaign ->
+                        loadCharacter(model, campaign.uuid)
+                        navigation.onCharacterOpened()
                     }, { campaign ->
                         editedCampaign = campaign
                     })
                 }
             }
         }
-
-//        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
-//            FloatingActionButton(onClick = { onAdd() }, modifier = Modifier.padding(16.dp)) {
-//                Icon(Icons.Filled.Add, contentDescription = "Add campaign")
-//            }
-//        }
     } else {
         CampaignEditor(editedCampaign!!, {
             editedCampaign = null

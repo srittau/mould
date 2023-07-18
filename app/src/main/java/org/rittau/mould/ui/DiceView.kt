@@ -13,21 +13,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import org.rittau.mould.model.Character
-import org.rittau.mould.model.StatOrTrack
+import org.rittau.mould.model.MouldModel
 import java.util.UUID
 
 @Composable
-fun DiceView(character: Character, stat: StatOrTrack?, onChangeStat: (StatOrTrack?) -> Unit) {
+fun DiceView(model: MouldModel, navigation: MouldNavigation) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        ActionRolls(character, stat, onChangeStat)
+        ActionRolls(model.character, navigation)
         Divider()
         ProgressRolls()
         Divider()
@@ -64,5 +66,8 @@ fun DiceSection(
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun DiceViewPreview() {
-    DiceView(Character(UUID.randomUUID(), "Joe"), null) {}
+    val model = MouldModel()
+    model.setCharacter(Character(UUID.randomUUID(), "Joe"), emptyList(), emptyList(), emptyList())
+    val nav = MouldNavigation(NavHostController(LocalContext.current))
+    DiceView(model, nav)
 }

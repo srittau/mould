@@ -19,14 +19,14 @@ import org.rittau.mould.R
 import org.rittau.mould.model.BondsTrack
 
 @Composable
-fun BondsSection(track: BondsTrack, onClick: () -> Unit) {
+fun BondsSection(track: BondsTrack, navigation: MouldNavigation) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
             .padding(16.dp)
             .fillMaxWidth()
-            .clickable { onClick() },
+            .clickable { navigation.onBondsClicked() },
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Bonds", style = MaterialTheme.typography.labelLarge)

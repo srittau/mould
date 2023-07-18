@@ -24,24 +24,28 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import org.rittau.mould.R
 import org.rittau.mould.model.Character
+import org.rittau.mould.model.MouldModel
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.model.WorldNoteType
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteView(
-    character: Character, note: WorldNote, onEdit: (note: WorldNote) -> Unit, onClose: () -> Unit
-) {
+fun NoteView(model: MouldModel, navigation: MouldNavigation) {
+    val character = model.character
+    val noteUUID = navigation.selectedNote ?: return
+    val note = model.findWorldNote(noteUUID) ?: return
     Scaffold(
         topBar = {
             TopAppBar(
@@ -53,7 +57,7 @@ fun NoteView(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onClose) {
+                    IconButton(onClick = { navigation.onCloseNote() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -61,7 +65,7 @@ fun NoteView(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onEdit(note) }) {
+            FloatingActionButton(onClick = { navigation.onEditNote() }) {
                 Icon(Icons.Filled.Edit, contentDescription = "Edit")
             }
         },
@@ -111,5 +115,10 @@ fun NoteViewPreview() {
     val note = WorldNote(
         noteUUID, "Title", WorldNoteType.World, "Summary", "Text\nwith multiple\n\nlines"
     )
-    NoteView(Character(UUID.randomUUID(), "Joe", bonds = setOf(noteUUID)), note, {}, {})
+    val character = Character(UUID.randomUUID(), "Joe", bonds = setOf(noteUUID))
+    val model = MouldModel()
+    model.setCharacter(character, emptyList(), listOf(note), emptyList())
+    val nav = MouldNavigation(NavHostController(LocalContext.current))
+    nav.selectedNote = noteUUID
+    NoteView(model, nav)
 }

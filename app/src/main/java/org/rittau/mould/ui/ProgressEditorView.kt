@@ -30,14 +30,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
 import org.rittau.mould.deleteProgress
-import org.rittau.mould.updateProgress
-import org.rittau.mould.model.ProgressTrack
+import org.rittau.mould.model.MouldModel
 import org.rittau.mould.model.ProgressType
-import java.util.UUID
+import org.rittau.mould.updateProgress
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProgressEditorView(track: ProgressTrack, onClose: () -> Unit, onDelete: (uuid: UUID) -> Unit) {
+fun ProgressEditorView(model: MouldModel, navigation: MouldNavigation) {
+    val trackUUID = navigation.selectedProgressTrack ?: return
+    val track = model.findProgressTrack(trackUUID) ?: return
+
     var closeDialog by rememberSaveable { mutableStateOf(false) }
     var deleteDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -61,7 +63,7 @@ fun ProgressEditorView(track: ProgressTrack, onClose: () -> Unit, onDelete: (uui
         if (changed) {
             closeDialog = true
         } else {
-            onClose()
+            navigation.onCloseProgressEditor()
         }
     }
 
@@ -76,8 +78,8 @@ fun ProgressEditorView(track: ProgressTrack, onClose: () -> Unit, onDelete: (uui
 
     fun onDeleteClick() {
         runBlocking { deleteProgress(track.uuid) }
-        onDelete(track.uuid)
-        onClose()
+        model.removeProgressTrack(track.uuid)
+        navigation.onProgressDeleted()
     }
 
     if (closeDialog) {
@@ -86,7 +88,7 @@ fun ProgressEditorView(track: ProgressTrack, onClose: () -> Unit, onDelete: (uui
             confirmButton = {
                 Button(onClick = {
                     closeDialog = false
-                    onClose()
+                    navigation.onCloseProgressEditor()
                 }) {
                     Text("Close")
                 }

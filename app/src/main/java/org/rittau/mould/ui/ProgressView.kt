@@ -34,12 +34,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.runBlocking
+import org.rittau.mould.createProgress
 import org.rittau.mould.model.Character
+import org.rittau.mould.model.MouldModel
 import org.rittau.mould.model.ProgressTrack
 import org.rittau.mould.model.ProgressType
 import org.rittau.mould.ui.theme.MouldTheme
@@ -48,39 +52,33 @@ import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProgressView(
-    character: Character,
-    progress: List<ProgressTrack>,
-    onBondsClick: () -> Unit,
-    onAddProgress: () -> Unit,
-    onEditProgress: (UUID) -> Unit,
-    onRemoveProgress: (UUID) -> Unit,
-) {
-    val name = character.name.ifBlank { "Unnamed Character" }
+fun ProgressView(model: MouldModel, navigation: MouldNavigation) {
+    val name = model.character.name.ifBlank { "Unnamed Character" }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = name) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { onAddProgress() }) {
-                Icon(Icons.Filled.Add, "Add progress track")
-            }
-        }) { contentPadding ->
+    Scaffold(topBar = {
+        TopAppBar(
+            title = { Text(text = name) },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        )
+    }, floatingActionButton = {
+        FloatingActionButton(onClick = {
+            val track = runBlocking { createProgress(model.character.uuid) }
+            model.addProgressTrack(track)
+            navigation.onProgressAdded(track.uuid)
+        }) {
+            Icon(Icons.Filled.Add, "Add progress track")
+        }
+    }) { contentPadding ->
         Column(
             modifier = Modifier
                 .padding(contentPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            BondsSection(character.bondsTrack, onBondsClick)
+            BondsSection(model.character.bondsTrack, navigation)
             ProgressList(
-                progress,
+                model,
+                navigation,
                 modifier = Modifier.padding(bottom = 60.dp),
-                onEdit = onEditProgress,
-                onRemove = onRemoveProgress,
             )
         }
     }
@@ -88,10 +86,9 @@ fun ProgressView(
 
 @Composable
 fun ProgressList(
-    progress: List<ProgressTrack>,
+    model: MouldModel,
+    navigation: MouldNavigation,
     modifier: Modifier = Modifier,
-    onEdit: (uuid: UUID) -> Unit,
-    onRemove: (uuid: UUID) -> Unit,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -99,11 +96,11 @@ fun ProgressList(
         modifier = modifier.fillMaxWidth(),
     ) {
         Text("Progress", style = MaterialTheme.typography.labelLarge)
-        progress.forEach { track ->
+        model.progressTracks.forEach { track ->
             ProgressTrack(
                 track,
-                onEdit = { onEdit(track.uuid) },
-                onRemove = { onRemove(track.uuid) },
+                onEdit = { navigation.onProgressEditClick(track.uuid) },
+                onRemove = { model.removeProgressTrack(track.uuid) },
             )
         }
     }
@@ -115,10 +112,9 @@ fun ProgressTrack(track: ProgressTrack, onEdit: () -> Unit, onRemove: () -> Unit
     var menuExpanded by rememberSaveable {
         mutableStateOf(false)
     }
-    val progress =
-        rememberSaveable {
-            mutableStateOf(track.ticks)
-        }
+    val progress = rememberSaveable {
+        mutableStateOf(track.ticks)
+    }
 
     fun onAdd() {
         progress.value = track.markProgress()
@@ -204,7 +200,10 @@ fun ProgressTrack(track: ProgressTrack, onEdit: () -> Unit, onRemove: () -> Unit
 fun ProgressViewPreview() {
     val character =
         Character(UUID.randomUUID(), "Joe", bonds = setOf(UUID.randomUUID(), UUID.randomUUID()))
+    val model = MouldModel()
+    model.setCharacter(character, emptyList(), emptyList(), emptyList())
+    val nav = MouldNavigation(NavHostController(LocalContext.current))
     MouldTheme {
-        ProgressView(character, listOf(), {}, {}, {}, {})
+        ProgressView(model, nav)
     }
 }

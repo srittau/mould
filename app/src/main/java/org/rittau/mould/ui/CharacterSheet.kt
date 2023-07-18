@@ -21,23 +21,26 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import org.rittau.mould.model.Character
+import org.rittau.mould.model.MouldModel
 import org.rittau.mould.model.StatOrTrack
 import org.rittau.mould.ui.theme.MouldTheme
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterSheet(character: Character, onEdit: () -> Unit, onStatClick: (StatOrTrack) -> Unit) {
-    val name = character.name.ifBlank { "Unnamed Character" }
+fun CharacterSheet(model: MouldModel, navigation: MouldNavigation) {
+    val name = model.character.name.ifBlank { "Unnamed Character" }
     Surface {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             TopAppBar(
                 title = { Text(text = name) },
                 actions = {
-                    IconButton(onClick = onEdit) {
+                    IconButton(onClick = { navigation.onEditCharacter() }) {
                         Icon(Icons.Filled.Edit, contentDescription = "Edit")
                     }
                 },
@@ -52,32 +55,32 @@ fun CharacterSheet(character: Character, onEdit: () -> Unit, onStatClick: (StatO
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     StatsBlock(
-                        character,
+                        model.character,
                         modifier = Modifier.padding(bottom = 32.dp),
-                        onClick = onStatClick,
+                        onClick = { navigation.onStatOrTrackClicked(it) },
                     )
-                    MomentumTrack(character)
+                    MomentumTrack(model.character)
                     ConditionTrack(
                         { HealthIcon(modifier = it) },
-                        character,
-                        character.healthTrack,
-                        onClick = { onStatClick(StatOrTrack.Health) },
+                        model.character,
+                        model.character.healthTrack,
+                        onClick = { navigation.onStatOrTrackClicked(StatOrTrack.Health) },
                     )
                     ConditionTrack(
                         { SpiritIcon(modifier = it) },
-                        character,
-                        character.spiritTrack,
-                        onClick = { onStatClick(StatOrTrack.Spirit) },
+                        model.character,
+                        model.character.spiritTrack,
+                        onClick = { navigation.onStatOrTrackClicked(StatOrTrack.Spirit) },
                     )
                     ConditionTrack(
                         { SupplyIcon(modifier = it) },
-                        character,
-                        character.supplyTrack,
-                        onClick = { onStatClick(StatOrTrack.Supply) },
+                        model.character,
+                        model.character.supplyTrack,
+                        onClick = { navigation.onStatOrTrackClicked(StatOrTrack.Supply) },
                     )
                 }
                 Divider()
-                CharacterNotes(character)
+                CharacterNotes(model.character)
             }
         }
     }
@@ -87,7 +90,10 @@ fun CharacterSheet(character: Character, onEdit: () -> Unit, onStatClick: (StatO
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun CharacterSheetPreview() {
+    val model = MouldModel()
+    model.setCharacter(Character(UUID.randomUUID(), "John"), emptyList(), emptyList(), emptyList())
+    val navigation = MouldNavigation(NavHostController(LocalContext.current))
     MouldTheme {
-        CharacterSheet(Character(UUID.randomUUID(), "John"), {}, {})
+        CharacterSheet(model, navigation)
     }
 }

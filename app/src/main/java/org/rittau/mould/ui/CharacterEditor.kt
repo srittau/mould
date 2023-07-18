@@ -30,13 +30,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import org.rittau.mould.model.Character
+import org.rittau.mould.model.MouldModel
 import org.rittau.mould.model.statsOk
 import org.rittau.mould.saveCharacterSync
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterEditor(character: Character, onBack: () -> Unit) {
+fun CharacterEditor(model: MouldModel, navigation: MouldNavigation) {
+    val character = model.character
     var name by rememberSaveable { mutableStateOf(character.name) }
     var summary by rememberSaveable { mutableStateOf(character.summary) }
     val edge = rememberSaveable { mutableStateOf(character.edge) }
@@ -52,7 +53,7 @@ fun CharacterEditor(character: Character, onBack: () -> Unit) {
         if (name != character.name || summary != character.summary || edge.value != character.edge || heart.value != character.heart || iron.value != character.iron || shadow.value != character.shadow || wits.value != character.wits) {
             closeDialog = true
         } else {
-            onBack()
+            navigation.onCloseCharacterEditor()
         }
     }
 
@@ -73,7 +74,7 @@ fun CharacterEditor(character: Character, onBack: () -> Unit) {
             confirmButton = {
                 Button(onClick = {
                     closeDialog = false
-                    onBack()
+                    navigation.onCloseCharacterEditor()
                 }) {
                     Text("Close")
                 }
@@ -97,7 +98,10 @@ fun CharacterEditor(character: Character, onBack: () -> Unit) {
                 }
             },
             actions = {
-                IconButton(onClick = { save(); onBack() }) {
+                IconButton(onClick = {
+                    save()
+                    navigation.onCloseCharacterEditor()
+                }) {
                     Icon(Icons.Filled.Done, contentDescription = "Save")
                 }
             },

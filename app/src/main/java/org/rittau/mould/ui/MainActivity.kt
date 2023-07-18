@@ -17,11 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -31,18 +27,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.runBlocking
-import org.rittau.mould.createProgress
 import org.rittau.mould.initializeDatabase
-import org.rittau.mould.model.CampaignNote
-import org.rittau.mould.model.NULL_CHARACTER
-import org.rittau.mould.model.ProgressTrack
-import org.rittau.mould.model.StatOrTrack
-import org.rittau.mould.model.WorldNote
+import org.rittau.mould.model.MouldModel
 import org.rittau.mould.ui.theme.MouldTheme
-
-enum class MouldScreen {
-    CampaignList, Character, CharacterEditor, Progress, ProgressEditor, Dice, Notes, Note, NoteEditor, JournalEditor,
-}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,40 +38,21 @@ class MainActivity : ComponentActivity() {
         runBlocking {
             initializeDatabase(applicationContext)
         }
+        val model = MouldModel()
 
         setContent {
-            Content()
+            Content(model)
         }
     }
 }
 
 @Composable
-fun Content() {
+fun Content(model: MouldModel) {
     val navController: NavHostController = rememberNavController()
+    val navigation = remember { MouldNavigation(navController) }
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen =
         MouldScreen.valueOf(backStackEntry?.destination?.route ?: MouldScreen.CampaignList.name)
-
-    var character by rememberSaveable {
-        mutableStateOf(NULL_CHARACTER)
-    }
-    val progressTracks = remember {
-        mutableStateListOf<ProgressTrack>()
-    }
-
-    var currentTrack by rememberSaveable {
-        mutableStateOf<ProgressTrack?>(null)
-    }
-    var currentNote by rememberSaveable {
-        mutableStateOf<WorldNote?>(null)
-    }
-    var currentJournal by rememberSaveable {
-        mutableStateOf<CampaignNote?>(null)
-    }
-
-    var actionStat by rememberSaveable {
-        mutableStateOf<StatOrTrack?>(null)
-    }
 
     MouldTheme {
         Scaffold(bottomBar = {
@@ -104,106 +72,34 @@ fun Content() {
                 modifier = Modifier.padding(innerPadding),
             ) {
                 composable(MouldScreen.CampaignList.name) {
-                    CampaignListView(onCampaignSelected = {
-                        character = it.character
-                        with(progressTracks) {
-                            clear()
-                            addAll(it.progress)
-                        }
-                        navController.navigate(MouldScreen.Character.name)
-                    })
+                    CampaignListView(model, navigation)
                 }
                 composable(MouldScreen.Character.name) {
-                    CharacterSheet(
-                        character,
-                        onEdit = {
-                            navController.navigate(MouldScreen.CharacterEditor.name)
-                        },
-                        onStatClick = {
-                            actionStat = it
-                            navController.navigate(MouldScreen.Dice.name)
-                        },
-                    )
+                    CharacterSheet(model, navigation)
                 }
                 composable(MouldScreen.Progress.name) {
-                    ProgressView(
-                        character,
-                        progressTracks,
-                        onBondsClick = {
-                            navController.navigate(MouldScreen.Notes.name)
-                        },
-                        onAddProgress = {
-                            val track = runBlocking { createProgress(character.uuid) }
-                            progressTracks.add(track)
-                            currentTrack = track
-                            navController.navigate(MouldScreen.ProgressEditor.name)
-                        },
-                        onEditProgress = { uuid ->
-                            currentTrack = progressTracks.find { it.uuid == uuid }
-                            navController.navigate(MouldScreen.ProgressEditor.name)
-                        },
-                        onRemoveProgress = { uuid ->
-                            progressTracks.removeIf { it.uuid == uuid }
-                        }
-                    )
+                    ProgressView(model, navigation)
                 }
                 composable(MouldScreen.ProgressEditor.name) {
-                    val track = currentTrack
-                    if (track != null) {
-                        ProgressEditorView(track, {
-                            currentTrack = null
-                            navController.popBackStack()
-                        }) { uuid ->
-                            progressTracks.removeIf { it.uuid == uuid }
-                        }
-                    }
+                    ProgressEditorView(model, navigation)
                 }
                 composable(MouldScreen.CharacterEditor.name) {
-                    CharacterEditor(character) {
-                        navController.popBackStack()
-                    }
+                    CharacterEditor(model, navigation)
                 }
                 composable(MouldScreen.Dice.name) {
-                    DiceView(character, actionStat) { actionStat = it }
+                    DiceView(model, navigation)
                 }
                 composable(MouldScreen.Notes.name) {
-                    NotesView(character, { note, openEditor ->
-                        currentNote = note
-                        val target = if (openEditor) MouldScreen.NoteEditor else MouldScreen.Note
-                        navController.navigate(target.name)
-                    }, {
-                        currentJournal = it
-                        navController.navigate(MouldScreen.JournalEditor.name)
-                    })
+                    NotesView(model, navigation)
                 }
                 composable(MouldScreen.Note.name) {
-                    val note = currentNote
-                    if (note != null) {
-                        NoteView(character, note, {
-                            currentNote = it
-                            navController.navigate(MouldScreen.NoteEditor.name)
-                        }, {
-                            navController.popBackStack()
-                            currentNote = null
-                        })
-                    }
+                    NoteView(model, navigation)
                 }
                 composable(MouldScreen.NoteEditor.name) {
-                    val note = currentNote
-                    if (note != null) {
-                        NoteEditorView(character, note) {
-                            navController.popBackStack()
-                        }
-                    }
+                    NoteEditorView(model, navigation)
                 }
                 composable(MouldScreen.JournalEditor.name) {
-                    val journal = currentJournal
-                    if (journal != null) {
-                        JournalEditorView(journal) {
-                            navController.popBackStack()
-                            currentJournal = null
-                        }
-                    }
+                    JournalEditorView(model, navigation)
                 }
             }
         }

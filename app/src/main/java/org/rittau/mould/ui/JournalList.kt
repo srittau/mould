@@ -12,30 +12,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.rittau.mould.model.CampaignNote
+import org.rittau.mould.model.MouldModel
 
 @Composable
-fun JournalList(notes: List<CampaignNote>, onClick: (CampaignNote) -> Unit) {
+fun JournalList(model: MouldModel, navigation: MouldNavigation) {
     LazyColumn(
         contentPadding = PaddingValues(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        items(notes, key = { note -> note.uuid }) { note ->
-            JournalItem(note, onClick)
+        items(model.journal, key = { entry -> entry.uuid }) { entry ->
+            JournalItem(entry, navigation)
         }
     }
 }
 
 @Composable
-fun JournalItem(note: CampaignNote, onClick: (CampaignNote) -> Unit) {
+fun JournalItem(entry: CampaignNote, navigation: MouldNavigation) {
     ListItem(
         overlineContent = {
-            if (note.date.isNotEmpty()) { Text(note.date) }
+            if (entry.date.isNotEmpty()) { Text(entry.date) }
         },
         headlineContent = {
             Text(
-                if (note.title != "") note.title else "<untitled>",
+                if (entry.title != "") entry.title else "<untitled>",
                 style = MaterialTheme.typography.bodyLarge,
             )
         },
-        modifier = Modifier.clickable { onClick.invoke(note) },
+        modifier = Modifier.clickable { navigation.onJournalEntryClicked(entry.uuid) },
     )
 }

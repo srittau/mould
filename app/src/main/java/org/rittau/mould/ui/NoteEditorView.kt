@@ -30,10 +30,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -43,6 +45,7 @@ import org.rittau.mould.createBond
 import org.rittau.mould.deleteBond
 import org.rittau.mould.deleteWorldNote
 import org.rittau.mould.model.Character
+import org.rittau.mould.model.MouldModel
 import org.rittau.mould.model.WorldNote
 import org.rittau.mould.model.WorldNoteType
 import org.rittau.mould.model.canForgeBond
@@ -51,7 +54,11 @@ import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
+fun NoteEditorView(model: MouldModel, navigation: MouldNavigation) {
+    val character = model.character
+    val noteUUID = navigation.selectedNote ?: return
+    val note = model.findWorldNote(noteUUID) ?: return
+
     var title by rememberSaveable {
         mutableStateOf(note.title)
     }
@@ -97,10 +104,9 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
     }
 
     fun onDelete() {
-        runBlocking {
-            deleteWorldNote(note)
-        }
-        onClose()
+        runBlocking { deleteWorldNote(note.uuid) }
+        model.removeWorldNote(note.uuid)
+        navigation.onNoteDeleted()
     }
 
     if (closeDialog) {
@@ -109,7 +115,7 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
             confirmButton = {
                 Button(onClick = {
                     closeDialog = false
-                    onClose()
+                    navigation.onCloseNoteEditor()
                 }) {
                     Text("Close")
                 }
@@ -147,7 +153,7 @@ fun NoteEditorView(character: Character, note: WorldNote, onClose: () -> Unit) {
         if (changed) {
             closeDialog = true
         } else {
-            onClose()
+            navigation.onCloseNoteEditor()
         }
     }
 
@@ -258,13 +264,12 @@ fun NoteTypeSelect(value: WorldNoteType, onChange: (WorldNoteType) -> Unit) {
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun NoteEditorViewPreview() {
-    NoteEditorView(
-        Character(UUID.randomUUID(), "Joe"), WorldNote(
-            UUID.randomUUID(),
-            "Title",
-            WorldNoteType.World,
-            "Summary",
-            "Text\nwith multiple\n\nlines"
-        )
-    ) {}
+    val character = Character(UUID.randomUUID(), "Joe")
+    val note = WorldNote(
+        UUID.randomUUID(), "Title", WorldNoteType.World, "Summary", "Text\nwith multiple\n\nlines"
+    )
+    val model = MouldModel()
+    model.setCharacter(character, emptyList(), listOf(note), emptyList())
+    val nav = MouldNavigation(NavHostController(LocalContext.current))
+    NoteEditorView(model, nav)
 }

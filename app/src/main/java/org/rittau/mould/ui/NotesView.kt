@@ -10,15 +10,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import org.rittau.mould.model.CampaignNote
+import androidx.navigation.NavHostController
 import org.rittau.mould.model.Character
-import org.rittau.mould.model.WorldNote
+import org.rittau.mould.model.MouldModel
 import org.rittau.mould.ui.theme.MouldTheme
 import java.util.UUID
 
 @Composable
-fun NotesView(character: Character, onOpenNote: (WorldNote, Boolean) -> Unit, onOpenJournal: (CampaignNote) -> Unit) {
+fun NotesView(model: MouldModel, navigation: MouldNavigation) {
     var tab by rememberSaveable { mutableStateOf(0) }
 
     Column {
@@ -27,8 +28,8 @@ fun NotesView(character: Character, onOpenNote: (WorldNote, Boolean) -> Unit, on
             Tab(selected = tab == 1, text = { Text(text = "Journal") }, onClick = { tab = 1 })
         }
         when (tab) {
-            0 -> NotesPage(character, onOpenNote)
-            1 -> JournalPage(character, onOpenJournal)
+            0 -> NotesPage(model, navigation)
+            1 -> JournalPage(model, navigation)
         }
     }
 }
@@ -37,8 +38,10 @@ fun NotesView(character: Character, onOpenNote: (WorldNote, Boolean) -> Unit, on
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun NotesViewPreview() {
-    val character = Character(UUID.randomUUID(), "Joe")
+    val model = MouldModel()
+    model.setCharacter(Character(UUID.randomUUID(), "Joe"), emptyList(), emptyList(), emptyList())
+    val nav = MouldNavigation(NavHostController(LocalContext.current))
     MouldTheme {
-        NotesView(character, { _, _ -> }, {})
+        NotesView(model, nav)
     }
 }
