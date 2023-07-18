@@ -18,18 +18,22 @@ import org.rittau.mould.model.MouldModel
 import org.rittau.mould.ui.theme.MouldTheme
 import java.util.UUID
 
-@Composable
-fun NotesView(model: MouldModel, navigation: MouldNavigation) {
-    var tab by rememberSaveable { mutableStateOf(0) }
+class NotesScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+    override val screen = MouldScreenType.Notes
 
-    Column {
-        TabRow(selectedTabIndex = tab) {
-            Tab(selected = tab == 0, text = { Text(text = "Notes") }, onClick = { tab = 0 })
-            Tab(selected = tab == 1, text = { Text(text = "Journal") }, onClick = { tab = 1 })
-        }
-        when (tab) {
-            0 -> NotesPage(model, navigation)
-            1 -> JournalPage(model, navigation)
+    @Composable
+    override fun Content() {
+        var tab by rememberSaveable { mutableStateOf(0) }
+
+        Column {
+            TabRow(selectedTabIndex = tab) {
+                Tab(selected = tab == 0, text = { Text(text = "Notes") }, onClick = { tab = 0 })
+                Tab(selected = tab == 1, text = { Text(text = "Journal") }, onClick = { tab = 1 })
+            }
+            when (tab) {
+                0 -> NotesPage(model, navigation)
+                1 -> JournalPage(model, navigation)
+            }
         }
     }
 }
@@ -37,11 +41,11 @@ fun NotesView(model: MouldModel, navigation: MouldNavigation) {
 @Preview(name = "Light Mode", showBackground = true)
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun NotesViewPreview() {
+fun NotesScreenPreview() {
     val model = MouldModel()
     model.setCharacter(Character(UUID.randomUUID(), "Joe"), emptyList(), emptyList(), emptyList())
     val nav = MouldNavigation(NavHostController(LocalContext.current))
     MouldTheme {
-        NotesView(model, nav)
+        NotesScreen(model, nav).Content()
     }
 }

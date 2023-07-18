@@ -52,11 +52,26 @@ fun Content(model: MouldModel) {
     val navigation = remember { MouldNavigation(navController) }
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen =
-        MouldScreen.valueOf(backStackEntry?.destination?.route ?: MouldScreen.CampaignList.name)
+        MouldScreenType.valueOf(
+            backStackEntry?.destination?.route ?: MouldScreenType.CampaignList.name
+        )
+
+    val screens: List<MouldScreen> = listOf(
+        CampaignListScreen(model, navigation),
+        CharacterSheetScreen(model, navigation),
+        CharacterEditorScreen(model, navigation),
+        ProgressScreen(model, navigation),
+        ProgressEditorScreen(model, navigation),
+        DiceScreen(model, navigation),
+        NotesScreen(model, navigation),
+        WorldNoteScreen(model, navigation),
+        WorldNoteEditorScreen(model, navigation),
+        JournalEditorScreen(model, navigation),
+    )
 
     MouldTheme {
         Scaffold(bottomBar = {
-            if (currentScreen != MouldScreen.CampaignList) {
+            if (currentScreen != MouldScreenType.CampaignList) {
                 NavBar(currentScreen) {
                     navController.navigate(it.name) {
                         launchSingleTop = true
@@ -68,38 +83,13 @@ fun Content(model: MouldModel) {
         }) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = MouldScreen.CampaignList.name,
+                startDestination = MouldScreenType.CampaignList.name,
                 modifier = Modifier.padding(innerPadding),
             ) {
-                composable(MouldScreen.CampaignList.name) {
-                    CampaignListView(model, navigation)
-                }
-                composable(MouldScreen.Character.name) {
-                    CharacterSheet(model, navigation)
-                }
-                composable(MouldScreen.Progress.name) {
-                    ProgressView(model, navigation)
-                }
-                composable(MouldScreen.ProgressEditor.name) {
-                    ProgressEditorView(model, navigation)
-                }
-                composable(MouldScreen.CharacterEditor.name) {
-                    CharacterEditor(model, navigation)
-                }
-                composable(MouldScreen.Dice.name) {
-                    DiceView(model, navigation)
-                }
-                composable(MouldScreen.Notes.name) {
-                    NotesView(model, navigation)
-                }
-                composable(MouldScreen.Note.name) {
-                    NoteView(model, navigation)
-                }
-                composable(MouldScreen.NoteEditor.name) {
-                    NoteEditorView(model, navigation)
-                }
-                composable(MouldScreen.JournalEditor.name) {
-                    JournalEditorView(model, navigation)
+                screens.forEach { screen ->
+                    composable(screen.screen.name) {
+                        screen.Content()
+                    }
                 }
             }
         }
@@ -107,30 +97,33 @@ fun Content(model: MouldModel) {
 }
 
 @Composable
-fun NavBar(activeView: MouldScreen, onChange: (MouldScreen) -> Unit) {
+fun NavBar(activeView: MouldScreenType, onChange: (MouldScreenType) -> Unit) {
     NavigationBar {
         NavigationBarItem(icon = { Icon(Icons.Filled.Person, contentDescription = "Character") },
             label = { Text("Character") },
-            selected = activeView == MouldScreen.Character,
-            onClick = { onChange(MouldScreen.Character) })
+            selected = activeView == MouldScreenType.CharacterSheet,
+            onClick = { onChange(MouldScreenType.CharacterSheet) })
         NavigationBarItem(icon = {
             Icon(
                 Icons.Filled.IndeterminateCheckBox, contentDescription = "Progress"
             )
         },
             label = { Text("Progress") },
-            selected = activeView in arrayOf(MouldScreen.Progress, MouldScreen.ProgressEditor),
-            onClick = { onChange(MouldScreen.Progress) })
+            selected = activeView in arrayOf(
+                MouldScreenType.Progress,
+                MouldScreenType.ProgressEditor
+            ),
+            onClick = { onChange(MouldScreenType.Progress) })
         NavigationBarItem(icon = { Icon(Icons.Filled.Casino, contentDescription = "Dice") },
             label = { Text("Dice") },
-            selected = activeView == MouldScreen.Dice,
-            onClick = { onChange(MouldScreen.Dice) })
+            selected = activeView == MouldScreenType.Dice,
+            onClick = { onChange(MouldScreenType.Dice) })
         NavigationBarItem(icon = { Icon(Icons.Filled.NoteAlt, contentDescription = "Notes") },
             label = { Text("Notes") },
             selected = activeView in arrayOf(
-                MouldScreen.Notes, MouldScreen.Note, MouldScreen.NoteEditor
+                MouldScreenType.Notes, MouldScreenType.WorldNote, MouldScreenType.WorldNoteEditor
             ),
-            onClick = { onChange(MouldScreen.Notes) })
+            onClick = { onChange(MouldScreenType.Notes) })
     }
 }
 
@@ -139,6 +132,6 @@ fun NavBar(activeView: MouldScreen, onChange: (MouldScreen) -> Unit) {
 @Composable
 fun NavBarPreview() {
     MouldTheme {
-        NavBar(MouldScreen.Character) {}
+        NavBar(MouldScreenType.CharacterSheet) {}
     }
 }

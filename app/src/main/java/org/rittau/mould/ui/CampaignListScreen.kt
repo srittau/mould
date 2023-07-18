@@ -28,50 +28,55 @@ import org.rittau.mould.loadCharacter
 import org.rittau.mould.model.Campaign
 import org.rittau.mould.model.MouldModel
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@Composable
-fun CampaignListView(model: MouldModel, navigation: MouldNavigation) {
-    val campaigns = remember {
-        val cs = mutableStateListOf<Campaign>()
-        cs.addAll(runBlocking { loadAllCampaigns() })
-        cs
-    }
-    var editedCampaign by rememberSaveable {
-        mutableStateOf<Campaign?>(null)
-    }
+class CampaignListScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+    override val screen = MouldScreenType.CampaignList
 
-    fun onAdd() {
-        val camp = runBlocking { createCampaign() }
-        campaigns.add(camp)
-        editedCampaign = camp
-    }
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    @Composable
+    override fun Content() {
+        val campaigns = remember {
+            val cs = mutableStateListOf<Campaign>()
+            cs.addAll(runBlocking { loadAllCampaigns() })
+            cs
+        }
+        var editedCampaign by rememberSaveable {
+            mutableStateOf<Campaign?>(null)
+        }
 
-    if (editedCampaign == null) {
-        Scaffold(floatingActionButton = {
-            FloatingActionButton(onClick = { onAdd() }) {
-                Icon(Icons.Filled.Add, contentDescription = "Add campaign")
-            }
-        }) {
-            LazyColumn {
-                items(campaigns, key = { c -> c.uuid }) {
-                    CampaignItem(it, { campaign ->
-                        loadCharacter(model, campaign.uuid)
-                        navigation.onCharacterOpened()
-                    }, { campaign ->
-                        editedCampaign = campaign
-                    })
+        fun onAdd() {
+            val camp = runBlocking { createCampaign() }
+            campaigns.add(camp)
+            editedCampaign = camp
+        }
+
+        if (editedCampaign == null) {
+            Scaffold(floatingActionButton = {
+                FloatingActionButton(onClick = { onAdd() }) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add campaign")
+                }
+            }) {
+                LazyColumn {
+                    items(campaigns, key = { c -> c.uuid }) {
+                        CampaignItem(it, { campaign ->
+                            loadCharacter(model, campaign.uuid)
+                            navigation.onCharacterOpened()
+                        }, { campaign ->
+                            editedCampaign = campaign
+                        })
+                    }
                 }
             }
+        } else {
+            CampaignEditor(editedCampaign!!, {
+                editedCampaign = null
+            }, {
+                campaigns.remove(it)
+                editedCampaign = null
+            })
         }
-    } else {
-        CampaignEditor(editedCampaign!!, {
-            editedCampaign = null
-        }, {
-            campaigns.remove(it)
-            editedCampaign = null
-        })
     }
 }
+
 
 @Composable
 fun CampaignItem(campaign: Campaign, onOpen: (Campaign) -> Unit, onEdit: (Campaign) -> Unit) {

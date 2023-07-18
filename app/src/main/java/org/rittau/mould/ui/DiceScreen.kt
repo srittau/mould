@@ -21,19 +21,23 @@ import org.rittau.mould.model.Character
 import org.rittau.mould.model.MouldModel
 import java.util.UUID
 
-@Composable
-fun DiceView(model: MouldModel, navigation: MouldNavigation) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        ActionRolls(model.character, navigation)
-        Divider()
-        ProgressRolls()
-        Divider()
-        OracleRolls()
+class DiceScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+    override val screen = MouldScreenType.Dice
+
+    @Composable
+    override fun Content() {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            ActionRolls(model.character, navigation)
+            Divider()
+            ProgressRolls()
+            Divider()
+            OracleRolls()
+        }
     }
 }
 
@@ -65,9 +69,9 @@ fun DiceSection(
 @Preview(name = "Light Mode", showBackground = true)
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun DiceViewPreview() {
+fun DiceScreenPreview() {
     val model = MouldModel()
     model.setCharacter(Character(UUID.randomUUID(), "Joe"), emptyList(), emptyList(), emptyList())
     val nav = MouldNavigation(NavHostController(LocalContext.current))
-    DiceView(model, nav)
+    DiceScreen(model, nav).Content()
 }

@@ -50,36 +50,40 @@ import org.rittau.mould.ui.theme.MouldTheme
 import org.rittau.mould.updateProgress
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ProgressView(model: MouldModel, navigation: MouldNavigation) {
-    val name = model.character.name.ifBlank { "Unnamed Character" }
+class ProgressScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+    override val screen = MouldScreenType.Progress
 
-    Scaffold(topBar = {
-        TopAppBar(
-            title = { Text(text = name) },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        )
-    }, floatingActionButton = {
-        FloatingActionButton(onClick = {
-            val track = runBlocking { createProgress(model.character.uuid) }
-            model.addProgressTrack(track)
-            navigation.onProgressAdded(track.uuid)
-        }) {
-            Icon(Icons.Filled.Add, "Add progress track")
-        }
-    }) { contentPadding ->
-        Column(
-            modifier = Modifier
-                .padding(contentPadding)
-                .verticalScroll(rememberScrollState())
-        ) {
-            BondsSection(model.character.bondsTrack, navigation)
-            ProgressList(
-                model,
-                navigation,
-                modifier = Modifier.padding(bottom = 60.dp),
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    override fun Content() {
+        val name = model.character.name.ifBlank { "Unnamed Character" }
+
+        Scaffold(topBar = {
+            TopAppBar(
+                title = { Text(text = name) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             )
+        }, floatingActionButton = {
+            FloatingActionButton(onClick = {
+                val track = runBlocking { createProgress(model.character.uuid) }
+                model.addProgressTrack(track)
+                navigation.onProgressAdded(track.uuid)
+            }) {
+                Icon(Icons.Filled.Add, "Add progress track")
+            }
+        }) { contentPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(contentPadding)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                BondsSection(model.character.bondsTrack, navigation)
+                ProgressList(
+                    model,
+                    navigation,
+                    modifier = Modifier.padding(bottom = 60.dp),
+                )
+            }
         }
     }
 }
@@ -204,6 +208,6 @@ fun ProgressViewPreview() {
     model.setCharacter(character, emptyList(), emptyList(), emptyList())
     val nav = MouldNavigation(NavHostController(LocalContext.current))
     MouldTheme {
-        ProgressView(model, nav)
+        ProgressScreen(model, nav).Content()
     }
 }
