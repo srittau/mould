@@ -21,7 +21,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,22 +44,23 @@ class MainActivity : ComponentActivity() {
         runBlocking {
             initializeDatabase(applicationContext)
         }
-        val model = MouldModel()
-        loadCampaigns(model)
 
         setContent {
-            Content(model)
+            Content()
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Content(model: MouldModel) {
+fun Content() {
+    val model = rememberSaveable { MouldModel() }
+    loadCampaigns(model)
+
     val navController: NavHostController = rememberNavController()
-    val navigation = remember { MouldNavigation(navController) }
+    val navigation = rememberSaveable { MouldNavigation(navController) }
     val backStackEntry by navController.currentBackStackEntryAsState()
-    navigation.updateScreen(backStackEntry)
+    navigation.updateScreen(navController, backStackEntry)
 
     val screens: List<MouldScreen> = listOf(
         CampaignListScreen(model, navigation),

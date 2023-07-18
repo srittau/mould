@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import org.rittau.mould.model.StatOrTrack
+import java.io.Serializable
 import java.util.UUID
 
 enum class MouldScreenType {
@@ -14,9 +15,9 @@ enum class MouldScreenType {
 }
 
 class MouldNavigation(
-    private val controller: NavHostController,
+    private var controller: NavHostController,
     var currentScreen: MouldScreenType = MouldScreenType.CampaignList,
-) {
+) : Serializable {
     var selectedCampaign by mutableStateOf<UUID?>(null)
     var selectedStat by mutableStateOf<StatOrTrack?>(null)
     var selectedProgressTrack by mutableStateOf<UUID?>(null)
@@ -24,7 +25,11 @@ class MouldNavigation(
     var selectedJournal by mutableStateOf<UUID?>(null)
     var notesTab by mutableStateOf(0)
 
-    fun updateScreen(backStackEntry: androidx.navigation.NavBackStackEntry?) {
+    fun updateScreen(
+        newController: NavHostController,
+        backStackEntry: androidx.navigation.NavBackStackEntry?,
+    ) {
+        controller = newController
         val route = backStackEntry?.destination?.route
         if (route != null) {
             currentScreen = MouldScreenType.valueOf(route)
@@ -144,8 +149,10 @@ open class MouldScreen {
 
     open val hasAppBar: Boolean = false
     open fun title(): String = ""
+
     @Composable
-    open fun NavigationIcon() {}
+    open fun NavigationIcon() {
+    }
 
     @Composable
     open fun Content() {
