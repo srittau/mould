@@ -5,6 +5,27 @@ import java.io.Serializable
 import java.util.UUID
 
 class MouldModel : Serializable {
+    val campaigns = mutableStateListOf<Campaign>()
+
+    fun findCampaign(uuid: UUID): Campaign? {
+        return campaigns.find { it.uuid == uuid }
+    }
+
+    fun setCampaigns(campaigns: List<Campaign>) {
+        with (this.campaigns) {
+            clear()
+            addAll(campaigns)
+        }
+    }
+
+    fun addCampaign(campaign: Campaign) {
+        campaigns.add(campaign)
+    }
+
+    fun removeCampaign(uuid: UUID) {
+        campaigns.removeIf { it.uuid == uuid }
+    }
+
     private var _character: Character? = null
     val progressTracks = mutableStateListOf<ProgressTrack>()
     val worldNotes = mutableStateListOf<WorldNote>()

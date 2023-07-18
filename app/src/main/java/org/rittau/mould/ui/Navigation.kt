@@ -17,10 +17,12 @@ class MouldNavigation(
     private val controller: NavHostController,
     var currentScreen: MouldScreenType = MouldScreenType.CampaignList,
 ) {
+    var selectedCampaign by mutableStateOf<UUID?>(null)
     var selectedStat by mutableStateOf<StatOrTrack?>(null)
     var selectedProgressTrack by mutableStateOf<UUID?>(null)
     var selectedNote by mutableStateOf<UUID?>(null)
     var selectedJournal by mutableStateOf<UUID?>(null)
+    var notesTab by mutableStateOf(0)
 
     fun updateScreen(backStackEntry: androidx.navigation.NavBackStackEntry?) {
         val route = backStackEntry?.destination?.route
@@ -29,12 +31,31 @@ class MouldNavigation(
         }
     }
 
+    fun findCurrentScreen(screens: List<MouldScreen>): MouldScreen =
+        screens.first { it.screen == currentScreen }
+
     fun onNavBarClick(type: MouldScreenType) {
         controller.navigate(type.name) {
             launchSingleTop = true
             restoreState = true
             popUpTo(controller.graph.findStartDestination().id) { saveState = true }
         }
+    }
+
+    fun onEditCampaign(uuid: UUID) {
+        selectedCampaign = uuid
+    }
+
+    fun onCampaignAdded(uuid: UUID) {
+        selectedCampaign = uuid
+    }
+
+    fun onCloseCampaignEditor() {
+        selectedCampaign = null
+    }
+
+    fun onCampaignDeleted() {
+        selectedCampaign = null
     }
 
     fun onCharacterOpened() = controller.navigate(MouldScreenType.CharacterSheet.name)
@@ -118,9 +139,21 @@ class MouldNavigation(
     }
 }
 
-interface MouldScreen {
-    val screen: MouldScreenType
+open class MouldScreen {
+    open val screen: MouldScreenType = MouldScreenType.CampaignList
+
+    open val hasAppBar: Boolean = false
+    open fun title(): String = ""
+    @Composable
+    open fun NavigationIcon() {}
 
     @Composable
-    fun Content()
+    open fun Content() {
+    }
+
+    @Composable
+    open fun FloatingIcon() {
+    }
+
+    open val hasNavBar: Boolean = true
 }

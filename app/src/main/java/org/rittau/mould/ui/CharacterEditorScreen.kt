@@ -34,7 +34,7 @@ import org.rittau.mould.model.MouldModel
 import org.rittau.mould.model.statsOk
 import org.rittau.mould.saveCharacterSync
 
-class CharacterEditorScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+class CharacterEditorScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen() {
     override val screen = MouldScreenType.CharacterEditor
 
     @OptIn(ExperimentalMaterial3Api::class)

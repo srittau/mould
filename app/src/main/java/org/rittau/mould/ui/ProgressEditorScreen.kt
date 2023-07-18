@@ -34,7 +34,7 @@ import org.rittau.mould.model.MouldModel
 import org.rittau.mould.model.ProgressType
 import org.rittau.mould.updateProgress
 
-class ProgressEditorScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+class ProgressEditorScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen() {
     override val screen = MouldScreenType.ProgressEditor
 
     @OptIn(ExperimentalMaterial3Api::class)

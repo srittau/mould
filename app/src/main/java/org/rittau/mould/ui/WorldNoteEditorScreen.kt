@@ -52,7 +52,7 @@ import org.rittau.mould.model.canForgeBond
 import org.rittau.mould.updateWorldNote
 import java.util.UUID
 
-class WorldNoteEditorScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+class WorldNoteEditorScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen() {
     override val screen = MouldScreenType.WorldNoteEditor
 
     @OptIn(ExperimentalMaterial3Api::class)

@@ -37,7 +37,7 @@ import org.rittau.mould.model.MouldModel
 import org.rittau.mould.updateCampaignNote
 import java.util.UUID
 
-class JournalEditorScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+class JournalEditorScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen() {
     override val screen = MouldScreenType.JournalEditor
 
     @OptIn(ExperimentalMaterial3Api::class)

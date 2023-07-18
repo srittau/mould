@@ -21,7 +21,7 @@ import org.rittau.mould.model.Character
 import org.rittau.mould.model.MouldModel
 import java.util.UUID
 
-class DiceScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+class DiceScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen() {
     override val screen = MouldScreenType.Dice
 
     @Composable

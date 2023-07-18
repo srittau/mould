@@ -23,10 +23,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,40 +47,34 @@ import org.rittau.mould.ui.theme.MouldTheme
 import org.rittau.mould.updateProgress
 import java.util.UUID
 
-class ProgressScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+class ProgressScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen() {
     override val screen = MouldScreenType.Progress
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    override val hasAppBar: Boolean = true
+    override fun title(): String {
+        return model.character.name.ifBlank { "Unnamed Character" }
+    }
+
     @Composable
     override fun Content() {
-        val name = model.character.name.ifBlank { "Unnamed Character" }
-
-        Scaffold(topBar = {
-            TopAppBar(
-                title = { Text(text = name) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            BondsSection(model.character.bondsTrack, navigation)
+            ProgressList(
+                model,
+                navigation,
+                modifier = Modifier.padding(bottom = 60.dp),
             )
-        }, floatingActionButton = {
-            FloatingActionButton(onClick = {
-                val track = runBlocking { createProgress(model.character.uuid) }
-                model.addProgressTrack(track)
-                navigation.onProgressAdded(track.uuid)
-            }) {
-                Icon(Icons.Filled.Add, "Add progress track")
-            }
-        }) { contentPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(contentPadding)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                BondsSection(model.character.bondsTrack, navigation)
-                ProgressList(
-                    model,
-                    navigation,
-                    modifier = Modifier.padding(bottom = 60.dp),
-                )
-            }
+        }
+    }
+
+    @Composable
+    override fun FloatingIcon() {
+        FloatingActionButton(onClick = {
+            val track = runBlocking { createProgress(model.character.uuid) }
+            model.addProgressTrack(track)
+            navigation.onProgressAdded(track.uuid)
+        }) {
+            Icon(Icons.Filled.Add, "Add progress track")
         }
     }
 }

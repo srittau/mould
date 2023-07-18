@@ -31,7 +31,7 @@ import org.rittau.mould.model.StatOrTrack
 import org.rittau.mould.ui.theme.MouldTheme
 import java.util.UUID
 
-class CharacterSheetScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+class CharacterSheetScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen() {
     override val screen = MouldScreenType.CharacterSheet
 
     @OptIn(ExperimentalMaterial3Api::class)

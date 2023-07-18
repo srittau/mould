@@ -12,15 +12,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,7 +24,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -40,73 +35,66 @@ import org.rittau.mould.model.WorldNote
 import org.rittau.mould.model.WorldNoteType
 import java.util.UUID
 
-class WorldNoteScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen {
+class WorldNoteScreen(val model: MouldModel, val navigation: MouldNavigation) : MouldScreen() {
     override val screen = MouldScreenType.WorldNote
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    override val hasAppBar: Boolean = true
+    override fun title(): String {
+        val noteUUID = navigation.selectedNote ?: UUID.randomUUID()
+        val noteTitle = model.findWorldNote(noteUUID)?.title ?: ""
+        return noteTitle.ifEmpty { "Untitled note" }
+    }
+    @Composable
+    override fun NavigationIcon() {
+        IconButton(onClick = { navigation.onCloseNote() }) {
+            Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+        }
+    }
+
     @Composable
     override fun Content() {
         val character = model.character
         val noteUUID = navigation.selectedNote ?: return
         val note = model.findWorldNote(noteUUID) ?: return
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            if (note.title != "") note.title else "Untitled note",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { navigation.onCloseNote() }) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .padding(8.dp)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            if (note.summary.isNotEmpty()) {
+                Text(
+                    note.summary,
+                    textAlign = TextAlign.Center,
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier.fillMaxWidth(),
                 )
-            },
-            floatingActionButton = {
-                FloatingActionButton(onClick = { navigation.onEditNote() }) {
-                    Icon(Icons.Filled.Edit, contentDescription = "Edit")
-                }
-            },
-        ) { contentPadding ->
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier
-                    .padding(contentPadding)
-                    .padding(8.dp)
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                if (note.summary.isNotEmpty()) {
-                    Text(
-                        note.summary,
-                        textAlign = TextAlign.Center,
-                        fontStyle = FontStyle.Italic,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    NoteTypeIcon(note.type, modifier = Modifier.size(18.dp))
-                    Text(note.type.name, style = MaterialTheme.typography.titleMedium)
-                }
-                if (character.isBondedTo(note.uuid)) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painterResource(R.drawable.bond),
-                            "Bonded",
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Text("Bonded", style = MaterialTheme.typography.titleMedium)
-                    }
-                }
-                MarkdownText(note.text, style = MaterialTheme.typography.bodyLarge)
             }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                NoteTypeIcon(note.type, modifier = Modifier.size(18.dp))
+                Text(note.type.name, style = MaterialTheme.typography.titleMedium)
+            }
+            if (character.isBondedTo(note.uuid)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painterResource(R.drawable.bond),
+                        "Bonded",
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text("Bonded", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+            MarkdownText(note.text, style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+
+    @Composable
+    override fun FloatingIcon() {
+        FloatingActionButton(onClick = { navigation.onEditNote() }) {
+            Icon(Icons.Filled.Edit, contentDescription = "Edit")
         }
     }
 }

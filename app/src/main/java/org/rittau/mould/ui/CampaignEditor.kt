@@ -25,13 +25,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
 import org.rittau.mould.deleteCampaign
-import org.rittau.mould.model.Campaign
+import org.rittau.mould.model.MouldModel
 import org.rittau.mould.updateCampaign
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CampaignEditor(campaign: Campaign, onClose: () -> Unit, onDelete: (campaign: Campaign) -> Unit) {
+fun CampaignEditor(model: MouldModel, navigation: MouldNavigation) {
+    val campaignUUID = navigation.selectedCampaign ?: return
+    val campaign = model.findCampaign(campaignUUID) ?: return
+
     var name by rememberSaveable { mutableStateOf(campaign.name) }
     var changed by rememberSaveable { mutableStateOf(false) }
     var closeDialog by rememberSaveable { mutableStateOf(false) }
@@ -46,8 +49,9 @@ fun CampaignEditor(campaign: Campaign, onClose: () -> Unit, onDelete: (campaign:
     }
 
     fun onDeleteClick() {
-        runBlocking { deleteCampaign(campaign.uuid) }
-        onDelete(campaign)
+        runBlocking { deleteCampaign(campaignUUID) }
+        model.removeCampaign(campaignUUID)
+        navigation.onCampaignDeleted()
     }
 
     if (closeDialog) {
@@ -56,7 +60,7 @@ fun CampaignEditor(campaign: Campaign, onClose: () -> Unit, onDelete: (campaign:
             confirmButton = {
                 Button(onClick = {
                     closeDialog = false
-                    onClose()
+                    navigation.onCloseCampaignEditor()
                 }) {
                     Text("Close")
                 }
@@ -94,7 +98,7 @@ fun CampaignEditor(campaign: Campaign, onClose: () -> Unit, onDelete: (campaign:
         if (changed) {
             closeDialog = true
         } else {
-            onClose()
+            navigation.onCloseCampaignEditor()
         }
     }
 

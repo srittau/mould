@@ -10,16 +10,21 @@ import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.IndeterminateCheckBox
 import androidx.compose.material.icons.filled.NoteAlt
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -28,6 +33,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.runBlocking
 import org.rittau.mould.initializeDatabase
+import org.rittau.mould.loadCampaigns
 import org.rittau.mould.model.MouldModel
 import org.rittau.mould.ui.theme.MouldTheme
 
@@ -39,6 +45,7 @@ class MainActivity : ComponentActivity() {
             initializeDatabase(applicationContext)
         }
         val model = MouldModel()
+        loadCampaigns(model)
 
         setContent {
             Content(model)
@@ -46,6 +53,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Content(model: MouldModel) {
     val navController: NavHostController = rememberNavController()
@@ -66,9 +74,21 @@ fun Content(model: MouldModel) {
         JournalEditorScreen(model, navigation),
     )
 
+    val screen = navigation.findCurrentScreen(screens)
+
     MouldTheme {
-        Scaffold(bottomBar = {
-            if (navigation.currentScreen != MouldScreenType.CampaignList) {
+        Scaffold(topBar = {
+            if (screen.hasAppBar) {
+                TopAppBar(
+                    title = {
+                        Text(screen.title(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    },
+                    navigationIcon = { screen.NavigationIcon() },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                )
+            }
+        }, floatingActionButton = { screen.FloatingIcon() }, bottomBar = {
+            if (screen.hasNavBar) {
                 NavBar(navigation)
             }
         }) { innerPadding ->
