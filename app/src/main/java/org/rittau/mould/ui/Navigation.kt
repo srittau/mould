@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import org.rittau.mould.model.StatOrTrack
 import java.util.UUID
@@ -12,11 +13,29 @@ enum class MouldScreenType {
     CampaignList, CharacterSheet, CharacterEditor, Progress, ProgressEditor, Dice, Notes, WorldNote, WorldNoteEditor, JournalEditor,
 }
 
-class MouldNavigation(private val controller: NavHostController) {
+class MouldNavigation(
+    private val controller: NavHostController,
+    var currentScreen: MouldScreenType = MouldScreenType.CampaignList,
+) {
     var selectedStat by mutableStateOf<StatOrTrack?>(null)
     var selectedProgressTrack by mutableStateOf<UUID?>(null)
     var selectedNote by mutableStateOf<UUID?>(null)
     var selectedJournal by mutableStateOf<UUID?>(null)
+
+    fun updateScreen(backStackEntry: androidx.navigation.NavBackStackEntry?) {
+        val route = backStackEntry?.destination?.route
+        if (route != null) {
+            currentScreen = MouldScreenType.valueOf(route)
+        }
+    }
+
+    fun onNavBarClick(type: MouldScreenType) {
+        controller.navigate(type.name) {
+            launchSingleTop = true
+            restoreState = true
+            popUpTo(controller.graph.findStartDestination().id) { saveState = true }
+        }
+    }
 
     fun onCharacterOpened() = controller.navigate(MouldScreenType.CharacterSheet.name)
     fun onEditCharacter() = controller.navigate(MouldScreenType.CharacterEditor.name)

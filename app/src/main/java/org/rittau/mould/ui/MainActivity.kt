@@ -19,8 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,10 +51,7 @@ fun Content(model: MouldModel) {
     val navController: NavHostController = rememberNavController()
     val navigation = remember { MouldNavigation(navController) }
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen =
-        MouldScreenType.valueOf(
-            backStackEntry?.destination?.route ?: MouldScreenType.CampaignList.name
-        )
+    navigation.updateScreen(backStackEntry)
 
     val screens: List<MouldScreen> = listOf(
         CampaignListScreen(model, navigation),
@@ -71,14 +68,8 @@ fun Content(model: MouldModel) {
 
     MouldTheme {
         Scaffold(bottomBar = {
-            if (currentScreen != MouldScreenType.CampaignList) {
-                NavBar(currentScreen) {
-                    navController.navigate(it.name) {
-                        launchSingleTop = true
-                        restoreState = true
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                    }
-                }
+            if (navigation.currentScreen != MouldScreenType.CampaignList) {
+                NavBar(navigation)
             }
         }) { innerPadding ->
             NavHost(
@@ -97,33 +88,29 @@ fun Content(model: MouldModel) {
 }
 
 @Composable
-fun NavBar(activeView: MouldScreenType, onChange: (MouldScreenType) -> Unit) {
+fun NavBar(navigation: MouldNavigation) {
     NavigationBar {
         NavigationBarItem(icon = { Icon(Icons.Filled.Person, contentDescription = "Character") },
             label = { Text("Character") },
-            selected = activeView == MouldScreenType.CharacterSheet,
-            onClick = { onChange(MouldScreenType.CharacterSheet) })
+            selected = navigation.currentScreen == MouldScreenType.CharacterSheet,
+            onClick = { navigation.onNavBarClick(MouldScreenType.CharacterSheet) })
         NavigationBarItem(icon = {
             Icon(
                 Icons.Filled.IndeterminateCheckBox, contentDescription = "Progress"
             )
-        },
-            label = { Text("Progress") },
-            selected = activeView in arrayOf(
-                MouldScreenType.Progress,
-                MouldScreenType.ProgressEditor
-            ),
-            onClick = { onChange(MouldScreenType.Progress) })
+        }, label = { Text("Progress") }, selected = navigation.currentScreen in arrayOf(
+            MouldScreenType.Progress, MouldScreenType.ProgressEditor
+        ), onClick = { navigation.onNavBarClick(MouldScreenType.Progress) })
         NavigationBarItem(icon = { Icon(Icons.Filled.Casino, contentDescription = "Dice") },
             label = { Text("Dice") },
-            selected = activeView == MouldScreenType.Dice,
-            onClick = { onChange(MouldScreenType.Dice) })
+            selected = navigation.currentScreen == MouldScreenType.Dice,
+            onClick = { navigation.onNavBarClick(MouldScreenType.Dice) })
         NavigationBarItem(icon = { Icon(Icons.Filled.NoteAlt, contentDescription = "Notes") },
             label = { Text("Notes") },
-            selected = activeView in arrayOf(
+            selected = navigation.currentScreen in arrayOf(
                 MouldScreenType.Notes, MouldScreenType.WorldNote, MouldScreenType.WorldNoteEditor
             ),
-            onClick = { onChange(MouldScreenType.Notes) })
+            onClick = { navigation.onNavBarClick(MouldScreenType.Notes) })
     }
 }
 
@@ -131,7 +118,9 @@ fun NavBar(activeView: MouldScreenType, onChange: (MouldScreenType) -> Unit) {
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun NavBarPreview() {
+    val nav =
+        MouldNavigation(NavHostController(LocalContext.current), MouldScreenType.CharacterSheet)
     MouldTheme {
-        NavBar(MouldScreenType.CharacterSheet) {}
+        NavBar(nav)
     }
 }
