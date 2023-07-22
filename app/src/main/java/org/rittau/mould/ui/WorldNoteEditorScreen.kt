@@ -84,6 +84,7 @@ class WorldNoteEditorScreen(val model: MouldModel, val navigation: MouldNavigati
             note.type = type
             note.summary = summary
             note.text = text
+            model.updateWorldNote(note)
             runBlocking {
                 updateWorldNote(note)
             }

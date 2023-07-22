@@ -54,6 +54,7 @@ class MouldModel : Serializable {
         with(worldNotes) {
             clear()
             addAll(notes)
+            sortBy { it.title }
         }
         with(this.journal) {
             clear()
@@ -78,7 +79,18 @@ class MouldModel : Serializable {
     }
 
     fun addWorldNote(note: WorldNote) {
-        worldNotes.add(note)
+        with(worldNotes) {
+            worldNotes.add(note)
+            sortBy { it.title }
+        }
+    }
+
+    fun updateWorldNote(note: WorldNote) {
+        with(worldNotes) {
+            removeIf { it.uuid == note.uuid }
+            add(note)
+            sortBy { it.title }
+        }
     }
 
     fun removeWorldNote(uuid: UUID) {
