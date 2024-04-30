@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.rittau.mould.model.CampaignNote
+import org.rittau.mould.model.JournalEntry
 import org.rittau.mould.model.MouldModel
 
 @Composable
@@ -26,7 +26,7 @@ fun JournalList(model: MouldModel, navigation: MouldNavigation) {
 }
 
 @Composable
-fun JournalItem(entry: CampaignNote, navigation: MouldNavigation) {
+fun JournalItem(entry: JournalEntry, navigation: MouldNavigation) {
     ListItem(
         overlineContent = {
             if (entry.date.isNotEmpty()) { Text(entry.date) }

@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.runBlocking
 import org.rittau.mould.deleteCampaignNote
-import org.rittau.mould.model.CampaignNote
+import org.rittau.mould.model.JournalEntry
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.MouldModel
 import org.rittau.mould.updateCampaignNote
@@ -183,7 +183,7 @@ class JournalEditorScreen(val model: MouldModel, val navigation: MouldNavigation
 @Composable
 fun JournalEditorScreenPreview() {
     val character = Character(UUID.randomUUID(), "Joe")
-    val note = CampaignNote(
+    val note = JournalEntry(
         UUID.randomUUID(), "Title", "Some date", "Text\nwith multiple\n\nlines"
     )
     val model = MouldModel()

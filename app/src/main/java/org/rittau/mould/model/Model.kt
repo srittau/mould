@@ -29,7 +29,7 @@ class MouldModel : Serializable {
     private var _character: Character? = null
     val progressTracks = mutableStateListOf<ProgressTrack>()
     val worldNotes = mutableStateListOf<WorldNote>()
-    val journal = mutableStateListOf<CampaignNote>()
+    val journal = mutableStateListOf<JournalEntry>()
 
     val character: Character
         get() {
@@ -44,7 +44,7 @@ class MouldModel : Serializable {
         char: Character,
         tracks: List<ProgressTrack>,
         notes: List<WorldNote>,
-        journal: List<CampaignNote>
+        journal: List<JournalEntry>
     ) {
         _character = char
         with(progressTracks) {
@@ -97,11 +97,11 @@ class MouldModel : Serializable {
         worldNotes.removeIf { it.uuid == uuid }
     }
 
-    fun findJournalEntry(uuid: UUID): CampaignNote? {
+    fun findJournalEntry(uuid: UUID): JournalEntry? {
         return journal.find { it.uuid == uuid }
     }
 
-    fun addJournalEntry(entry: CampaignNote) {
+    fun addJournalEntry(entry: JournalEntry) {
         journal.add(0, entry)
     }
 

@@ -23,7 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.rittau.mould.model.Campaign
-import org.rittau.mould.model.CampaignNote
+import org.rittau.mould.model.JournalEntry
 import org.rittau.mould.model.ChallengeRank
 import org.rittau.mould.model.Character
 import org.rittau.mould.model.ProgressCompletion
@@ -214,8 +214,8 @@ private data class DbCampaignNote(
     @ColumnInfo(defaultValue = "0") val order: Int,
 )
 
-private fun campaignNoteFromDb(db: DbCampaignNote): CampaignNote {
-    return CampaignNote(db.uuid, db.title, db.date, db.text)
+private fun campaignNoteFromDb(db: DbCampaignNote): JournalEntry {
+    return JournalEntry(db.uuid, db.title, db.date, db.text)
 }
 
 @Dao
@@ -562,14 +562,14 @@ suspend fun deleteWorldNote(uuid: UUID) {
     getDb().worldNoteDao().deleteNote(uuid)
 }
 
-suspend fun loadCampaignNotes(campaignUUID: UUID): List<CampaignNote> {
+suspend fun loadCampaignNotes(campaignUUID: UUID): List<JournalEntry> {
     val notes = getDb().campaignNoteDao().selectNotesByCampaign(campaignUUID)
     return notes.map { campaignNoteFromDb(it) }
 }
 
 suspend fun createCampaignNote(
     campaignUUID: UUID, title: String = "", date: String = "", text: String = ""
-): CampaignNote {
+): JournalEntry {
     val db = getDb()
     val order = (db.campaignNoteDao().selectMaxOrder(campaignUUID) ?: 0) + 1
     val note = DbCampaignNote(UUID.randomUUID(), campaignUUID, title, date, text, order)
@@ -577,11 +577,11 @@ suspend fun createCampaignNote(
     return campaignNoteFromDb(note)
 }
 
-suspend fun updateCampaignNote(note: CampaignNote) {
+suspend fun updateCampaignNote(note: JournalEntry) {
     getDb().campaignNoteDao().updateNote(note.uuid, note.title, note.date, note.text)
 }
 
-suspend fun deleteCampaignNote(note: CampaignNote) {
+suspend fun deleteCampaignNote(note: JournalEntry) {
     getDb().campaignNoteDao().deleteNote(note.uuid)
 }
 
