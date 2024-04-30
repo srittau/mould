@@ -72,6 +72,7 @@ fun Content() {
         NotesScreen(model, navigation),
         WorldNoteScreen(model, navigation),
         WorldNoteEditorScreen(model, navigation),
+        JournalScreen(model, navigation),
         JournalEditorScreen(model, navigation),
     )
 

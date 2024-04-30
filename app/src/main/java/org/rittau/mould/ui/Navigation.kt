@@ -11,7 +11,7 @@ import java.io.Serializable
 import java.util.UUID
 
 enum class MouldScreenType {
-    CampaignList, CharacterSheet, CharacterEditor, Progress, ProgressEditor, Dice, Notes, WorldNote, WorldNoteEditor, JournalEditor,
+    CampaignList, CharacterSheet, CharacterEditor, Progress, ProgressEditor, Dice, Notes, WorldNote, WorldNoteEditor, JournalEntry, JournalEditor,
 }
 
 class MouldNavigation(
@@ -125,20 +125,33 @@ class MouldNavigation(
 
     fun onJournalEntryAdded(uuid: UUID) {
         selectedJournal = uuid
+        controller.navigate(MouldScreenType.JournalEntry.name)
+        controller.navigate(MouldScreenType.JournalEditor.name)
+    }
+
+    fun onEditJournalEntry() {
+        if (selectedJournal == null) {
+            throw IllegalStateException("No journal entry to edit")
+        }
         controller.navigate(MouldScreenType.JournalEditor.name)
     }
 
     fun onJournalEntryClicked(uuid: UUID) {
         selectedJournal = uuid
-        controller.navigate(MouldScreenType.JournalEditor.name)
+        controller.navigate(MouldScreenType.JournalEntry.name)
     }
 
-    fun onCloseJournalEditor() {
+    fun onCloseJournalEntry() {
         controller.popBackStack()
         selectedJournal = null
     }
 
+    fun onCloseJournalEditor() {
+        controller.popBackStack()
+    }
+
     fun onDeleteJournalEntry() {
+        controller.popBackStack()
         controller.popBackStack()
         selectedJournal = null
     }
